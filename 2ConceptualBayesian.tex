@@ -1,0 +1,208 @@
+\documentclass[12pt, compress]{beamer}
+\usepackage{lmodern}
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary}
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Conceptual differences between the Frequentist and Bayesian inferential frameworks}
+\date{2025} % \today
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+
+%\tikzstyle{every picture}+=[remember picture]
+%\everymath{\displaystyle}
+%\tikzstyle{na} = [baseline=-.5ex]
+\maketitle
+
+% \begin{frame}
+% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+% \maketitle
+% \end{frame}
+
+
+
+\section*{Outline}
+\begin{frame}
+\textbf{\Large{Outline}}
+\tableofcontents
+\end{frame}
+
+\section{Thought experiment}
+
+\begin{frame}
+	\frametitle{Thought experiment}
+Assume that you are watching the international game show ``Who Wants to Be a Millionaire?". The contestant is asked to answer a very simple question: \textbf{What is the last name of the brothers who are credited with inventing the world's first successful motor-operated airplane?}
+
+\begin{itemize}
+	\item What is the probability that the contestant answers this question correctly? 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Thought experiment}
+Unless you have: 
+
+\begin{enumerate}
+	\item watched this particular contestant participate in this show many times,
+	\item seen her asked this same question each time, 
+	\item and computed the relative frequency with which she gives the correct answer,   
+\end{enumerate}
+
+you need to answer this question as a Bayesian!
+\end{frame}
+
+\section{The concept of probability}
+
+\begin{frame}
+	\frametitle{The concept of probability}
+	\begin{block}{Bayesians}
+	Probability is the mathematical construct used to quantify uncertainty about an unknown state of nature, conditional on observed data and prior knowledge about the context in which that state occurs. Probability exists in the mind of scientists, as any scientific construct \citep{Parmigiani2008}
+	\end{block}
+
+	\begin{block}{Frequentists}
+	Probability is intrinsically linked to the concept of a repeated experiment, and the relative frequency with which a particular outcome occurs, conditional on that unknown state. Probability is a physical phenomenon, like mass or wavelength. 
+\end{block}
+
+\end{frame}
+
+\section{Subjectivity is not the key}
+
+\begin{frame}
+	\frametitle{Subjectivity is not the key}
+	\begin{itemize}
+		\item Among Frequentists, there are choices made about significance levels.
+		\item Both Frequentist and Bayesian Econometrician/Statisticians make decisions about the form of the data generating process.
+		\item What does objectivity mean in a Frequentist approach? For example, why should we use a 5\% or 1\% significance level rather than any other value? As someone said, the apparent objectivity is really a consensus \citep{Lindley2000}.  
+	\end{itemize}
+ 
+\end{frame}
+
+\section{Estimation, hypothesis testing and prediction}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+	\begin{block}{Bayesian}
+		All that is required to perform estimation, hypothesis testing (model selection), and prediction in the Bayesian approach is to apply Bayes' rule. This ensures coherence under a probabilistic view.
+	\end{block}
+
+	\begin{block}{Frequentist}
+		\begin{itemize}
+			\item Estimators as the solution to a system of equations.
+			\item The distribution of these estimators are obtained using asymptotic arguments or resampling techniques.
+			\item Hypothesis testing relies on pivotal quantities and/or resampling.
+			\item Prediction is typically based on a \textit{plug-in approach}.   
+		\end{itemize}
+\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+	\begin{block}{Bayesian}
+		Hypothesis testing (model selection) in the Bayesian framework is based on \textit{inductive logic} reasoning (\textit{inverse probability}). Based on observed data, we evaluate which hypothesis is most tenable.
+	\end{block}
+
+	\begin{block}{Frequentist}
+	Comparing models depends on their structure. For instance, there are different Frequentist statistical approaches to compare nested and non-nested models.
+\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+	\begin{block}{Example: Normal population mean hypothesis framework}
+		You cannot reject a null hypothesis $H_0: \mu = \mu^0$ at the $\alpha$ significance level (Type I error) if $\mu^0$ is in the $1-\alpha$ confidence interval. Specifically, 
+		\[
+		P\left( \mu \in \left[\hat{\mu} - |t_{N-1}^{\alpha/2}| \times \hat{\sigma}_{\hat{\mu}}, \hat{\mu} + |t_{N-1}^{\alpha/2}| \times \hat{\sigma}_{\hat{\mu}}\right] \right) = 1 - \alpha,
+		\]
+		where $\hat{\mu}$ and $\hat{\sigma}_{\hat{\mu}}$ are the maximum likelihood estimators of the mean and standard error, $t_{N-1}^{\alpha/2}$ is the quantile value of the Student's $t$-distribution at the $\alpha/2$ probability level with $N-1$ degrees of freedom, and $N$ is the sample size.
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+	\begin{block}{P-value}
+		Most researchers and practitioners conduct hypothesis testing based on the \textit{p}-value in the Frequentist framework. But \textbf{what is a \textit{p}-value?} Most users do not know the answer, as statistical inference is often not performed by statisticians \citep{Berger2006}.
+	\end{block}
+
+	\begin{block}{p-value}
+	\textit{p}-value calculations involve not just the observed data, but also more \textit{extreme} hypothetical observations. Thus,
+	
+	``What the use of \textit{p} implies, therefore, is that a hypothesis that may be true may be rejected because it has not predicted observable results that have not occurred." \cite{Jeffreys1961}
+\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+\begin{itemize}
+	\item ``P-values can indicate how incompatible the data are with a specified statistical model."
+	\item ``P-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone."
+	\item ``Scientific conclusions and business or policy decisions should not be based solely on whether a \textit{p}-value passes a specific threshold."
+	\item ``Proper inference requires full reporting and transparency."
+	\item ``A \textit{p}-value, or statistical significance, does not measure the size of an effect or the importance of a result."
+	\item ``By itself, a \textit{p}-value does not provide a good measure of evidence regarding a model or hypothesis."
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Estimation, hypothesis testing and prediction}
+	\begin{block}{Causal inference: Forward vs reverse}
+		Imagine that a firm increases the price of a specific good. Economic theory would suggest that, as a result, demand for the good decreases. In this case, the premise (null hypothesis) is the price increase, and the consequence is the decrease in the firm's demand.
+		
+		Alternatively, one could observe a reduction in a firm's demand and attempt to identify the cause behind it. For example, a reduction in quantity could be due to a negative supply shock. The Frequentist approach typically follows the first view (effects of causes/forward causal inference), while Bayesian reasoning focuses on determining the probability of potential causes (causes of effects/reverse causal inference).
+	\end{block}
+\end{frame}
+
+\section{Why is not the Bayesian approach that popular?}
+
+\begin{frame}
+	\frametitle{Why is not the Bayesian approach that popular?}
+	\begin{block}{Bayesian inference was first}
+		At this stage, one might wonder why the Bayesian statistical framework is not the dominant inferential approach, despite its historical origin in 1763 \citep{bayes1763lii}, whereas the Frequentist statistical framework was largely developed in the early 20th century.
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Why is not the Bayesian approach that popular?}
+
+	\begin{enumerate}
+		\item One issue is the \textit{apparent subjectivity} of the Bayesian approach.
+		\item \textit{Bayes himself seemed not to have believed in his idea}.
+		\item Once \textit{Laplace passed away in 1827}, Bayes' rule disappeared from the scientific discourse for almost a century.
+		\item \textit{The era of Frequentists, or sampling theorists, began}, led by Karl Pearson and his nemesis, Ronald Fisher.
+		\item \textit{Jeffreys lost}.
+		\item \textit{Bayesian developments remained top secret for almost 40 years}.
+		\item  \textit{Mathematical complexity}.
+		\item \textit{Requirement for large computations}.
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+			
+\end{document}

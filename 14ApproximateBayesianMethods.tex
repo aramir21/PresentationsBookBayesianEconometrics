@@ -1,0 +1,475 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} % or another version you have
+\usetikzlibrary{arrows.meta}
+
+\usepackage{etoolbox}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Approximate Bayesian methods}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+\textit{Approximate Bayesian methods} are a family of techniques designed to handle situations where the likelihood function lacks an analytical expression, is highly complex, or the problem is high-dimensional, whether due to a large parameter space or a massive dataset \citep{martin2024approximating}. In the former case, traditional Markov Chain Monte Carlo (MCMC) and importance sampling algorithms fail to provide a solution. In the latter, these algorithms struggle to produce accurate estimates within a reasonable timeframe, unless users modify them.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Introduction}
+\textit{Approximate Bayesian methods} address these challenges at the cost of providing an approximation to the posterior distribution rather than the \textit{exact} posterior. Nonetheless, asymptotic results show that the approximation improves as the sample size increases.
+\end{frame}
+
+\section{Simulation-based approaches}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches}
+\begin{align*}
+	\pi(\boldsymbol{\theta} \mid \mathbf{y}) & \propto p(\mathbf{y} \mid \boldsymbol{\theta}) \times \pi(\boldsymbol{\theta}),
+\end{align*} 
+\textit{Simulation-based algorithms} provide a Bayesian solution when the likelihood function lacks an analytical expression or is highly complex. The only requirement is that we must be able to simulate synthetic data from the model conditional on the parameters. Therefore, these algorithms obtain an approximation to the posterior draws by simulating from the prior distribution $\pi(\boldsymbol{\theta})$ and then using these draws to simulate from the likelihood $p(\mathbf{y} \mid \boldsymbol{\theta})$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: Approximate Bayesian computation}
+\begin{algorithm}[H]
+	\caption{Accept/reject ABC}\label{ABC0}
+	\begin{algorithmic}[1]
+		\For{\texttt{$s=1,\dots,S$}}
+		\State Draw ${\boldsymbol {\theta} }^{s}$ from $\pi({ \boldsymbol{\theta} }),$
+		\State Simulate ${\boldsymbol z}^{s}=(z_{1}^{s},z_{2}^{s},...,z_{N}^{s})^{\top}$ from the model, $p(\cdot|{\boldsymbol{\theta} }^{s})$
+		\State Calculate
+		$d_{(s)}=d\{{\boldsymbol\eta }({\boldsymbol y}),{\boldsymbol \eta }({\boldsymbol z}^{s})\}$
+		\EndFor
+		\State Order the distances $d_{(1)}\leq\cdots\leq d_{(S)}$
+		\State Select all $\boldsymbol{\theta}^s$ such that $d_{(i)}\leq \epsilon$, where $\epsilon>0$ is the tolerance level. 
+	\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: ABC}
+Note that the posterior distribution is conditional on the summary statistics \( \boldsymbol{\eta}(\boldsymbol{y}) \) and the tolerance parameter \( \epsilon \). This implies that we obtain an approximation to the target distribution \( \pi(\boldsymbol{\theta} \mid \boldsymbol{y}) \), that is \( \pi_{\epsilon}(\boldsymbol{\theta} \mid \boldsymbol{\eta}(\boldsymbol{y})) \), because \( \boldsymbol{\eta}(\boldsymbol{y}) \) is not a sufficient statistic in most cases, and \( \epsilon > 0 \), these conditions introduce bias \citep{blum2010approximate}.
+
+\cite{frazier2018asymptotic} show in Theorems 1 and 2 that Bayesian consistency and asymptotic normality hold, provided that \( \epsilon \to 0 \) fast enough as \( N \to +\infty \). In particular, the requirement is that the proportion of accepted draws converges to 0 at a rate faster than \( N^{-K / 2} \). Additionally, Theorem 2 in \cite{frazier2018asymptotic} shows that \( 100(1 -\alpha)\% \) Bayesian credible regions using ABC have frequentist coverage of \( 100(1 -\alpha)\% \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: ABC}
+The accept/reject ABC algorithm is inefficient, as all draws are independent; thus, there is no learning from previous draws. This intensifies the computational burden. Therefore, \cite{marjoram2003markov, wegmann2009efficient} introduced Markov Chain Monte Carlo ABC (ABC-MCMC) algorithms, and \cite{sisson2007sequential, drovandi2011estimation, del2012adaptive, lenormand2013adaptive} proposed sequential Monte Carlo approaches (ABC-SMC).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: ABC, g-and-k distribution for financial returns}
+The g-and-k distribution is defined by its quantile function \citep{drovandi2011likelihood}. It is specified through its inverse cumulative distribution function,
+
+\[
+Q(p\mid{\theta}) = F^{-1}(p\mid{\theta}),
+\]
+
+where \( F = P(U \leq u) \), and \( Q (p\mid{\theta}) \) represents the \( p \)-quantile \citep{rayner2002numerical}.
+
+\begin{align*}
+    Q^{gk}\left\{z(p)\mid a, b, c, g, k\right\} & = a + b\left[1 + c \frac{1 - \exp\left\{-gz(p)\right\}}{1 + \exp\left\{-gz(p)\right\}}\right]\\
+    &\left\{1 + z(p)^2\right\}^k z(p), c = 0.8
+\end{align*}
+
+where \( z(p) \) is the standard normal quantile function.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: ABC, g-and-k distribution for financial returns}
+\cite{drovandi2011likelihood} propose a moving average of order one using a g-and-k distribution to model exchange rate log returns. In particular,  
+\[
+z_t = \epsilon_t + \theta_1\epsilon_{t-1}, \quad t=1,\dots,524,
+\]  
+where \(\epsilon_t \sim N(0,1)\).  
+
+The values of \(z_t\) are then divided by \((1+\theta_1^2)^{1/2}\) to ensure that they marginally follow a standard normal distribution. Thus, simulating g-and-k data requires only substituting \(z_t\) into the quantile function.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: ABC, g-and-k distribution for financial returns}
+We model exchange rate log daily returns from USD/EUR one year before and after the WHO declared the COVID-19 pandemic on 11 March 2020.
+
+\begin{align*}
+	\theta_1\sim U(-1,1), \ a\sim U(0,5) \ b\sim U(0,5)\\
+	g\sim U(-5,5), \ k\sim U(-0.5, 5).
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: Bayesian synthetic likelihood}
+Given the intractability of $p(\boldsymbol{y} \mid \boldsymbol{\theta})$, it is highly likely that $p(\boldsymbol{\eta}(\boldsymbol{y}) \mid \boldsymbol{\theta})$ is also intractable. \cite{wood2010statistical} addressed this issue by introducing an auxiliary model for the summary statistics, assuming $p_a(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}) = N(\boldsymbol{\mu}_{\boldsymbol{\theta}}, \boldsymbol{\Sigma}_{\boldsymbol{\theta}})$.
+
+Bayesian synthetic likelihood (BSL) arises when this auxiliary likelihood is combined with a prior distribution on the parameter \citep{drovandi2015bayesian,price2018bayesian},
+\begin{align*} 
+	\pi_{a}(\boldsymbol{\theta} \mid \boldsymbol{\eta}(\boldsymbol{y})) &\propto p_{a}(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}) \pi(\boldsymbol{\theta}), 
+\end{align*}
+
+where the subscript \( a \) indicates that this is an approximation due to the Gaussian assumption.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: BSL}
+Note that \( p_a(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}) \) is rarely available, as \( \boldsymbol{\mu}_{\boldsymbol{\theta}} \) and \( \boldsymbol{\Sigma}_{\boldsymbol{\theta}} \) are generally unknown. Therefore, we estimate these quantities using simulations from the model given a realization of $\boldsymbol{\theta}$:
+\begin{align*} 
+	\widehat{\boldsymbol{\mu}}_{\boldsymbol{\theta}} &= \frac{1}{M} \sum_{m=1}^{M} \boldsymbol{\eta}(\boldsymbol{z}^{(m)}),\\
+	\widehat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}} &= \frac{1}{M-1} \sum_{m=1}^{M} (\boldsymbol{\eta}(\boldsymbol{z}^{(m)}) - \widehat{\boldsymbol{\mu}}_{\boldsymbol{\theta}})(\boldsymbol{\eta}(\boldsymbol{z}^{(m)}) - \widehat{\boldsymbol{\mu}}_{\boldsymbol{\theta}})^{\top}. 
+\end{align*}
+
+Then, we have 
+\begin{align*} 
+	\pi_{a,M}(\boldsymbol{\theta} \mid \boldsymbol{\eta}(\boldsymbol{y})) &\propto p_{a,M}(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}) \pi(\boldsymbol{\theta}), 
+\end{align*}
+where $p_{a,M}(\boldsymbol{\eta}(\boldsymbol{y}))$ uses the estimates, which in turn depends on the number of draws $M$ to calculate $\widehat{\boldsymbol{\mu}}_{\boldsymbol{\theta}}$ and $\widehat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: BSL}
+\begin{algorithm}[H]
+	\caption{Bayesian synthetic likelihood}\label{BSL0}
+	\begin{algorithmic}
+		\For{\texttt{$s=1,\dots,S$}}
+			\State Draw $\boldsymbol{\theta}^c\sim q(\boldsymbol{\theta}\mid \boldsymbol{\theta}^{s-1})$
+			\For{\texttt{$m=1,\dots,M$}}
+				\State Simulate ${\boldsymbol z}^{m}=(z_{1}^{m},z_{2}^{m},...,z_{N}^{m})^{\top}$ from the model, $p(\cdot\mid{\boldsymbol{\theta} }^c)$
+				\State Calculate $\boldsymbol{\eta}(\boldsymbol{z}^{(m)})$
+			\EndFor 			 
+			\State Calculate $\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^c}$ and $\hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^c}$
+			\State Compute $p_a^c(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}^c) = N(\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^c}, \hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^c})$ and $p_a^{s-1}(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}^{s-1}) = N(\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^{s-1}}, \hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^{s-1}})$
+    \EndFor
+	\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: BSL}
+\begin{algorithm}[H]
+	\caption{Bayesian synthetic likelihood}
+	\begin{algorithmic}
+			\State Compute the acceptance probability
+			$$\alpha(\boldsymbol{\theta}^{s-1},\boldsymbol{\theta}^c)=\min\left\{1,\frac{p_a^c(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}^c)\pi(\boldsymbol{\theta}^c)q(\boldsymbol{\theta}^{s-1}\mid \boldsymbol{\theta}^{c})}{p_a^{s-1}(\boldsymbol{\eta}(\boldsymbol{y})\mid \boldsymbol{\theta}^{s-1})\pi(\boldsymbol{\theta}^{s-1})q(\boldsymbol{\theta}^{c}\mid \boldsymbol{\theta}^{s-1})}\right\}$$
+			\State Draw $u$ from $U(0,1)$
+			\If{$u<\alpha$}
+				\State Set $\boldsymbol{\theta}^{s}=\boldsymbol{\theta}^{c}$, $\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^{s}}=\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^c}$ and $\hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^s}=\hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^c}$
+			\Else
+				\State Set $\boldsymbol{\theta}^{s}=\boldsymbol{\theta}^{s-1}$, $\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^{s}}=\hat{\boldsymbol{\mu}}_{\boldsymbol{\theta}^{s-1}}$ and $\hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^s}=\hat{\boldsymbol{\Sigma}}_{\boldsymbol{\theta}^{s-1}}$
+			\EndIf  
+	\end{algorithmic}
+\end{algorithm}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: BSL}
+    \cite{nott2023bayesian} show that \( \pi_{a,M}(\boldsymbol{\theta}) \) converges asymptotically to a Gaussian distribution and that the \( 100(1-\alpha)\% \) Bayesian credible regions using BSL have frequentist coverage of \( 100(1-\alpha)\% \). In addition, the posterior mean from BSL is also asymptotically Gaussian. These results require convenient estimation of the covariance matrix and that \( M \to \infty \) as \( N \to \infty \), $M=C\lfloor N^{\gamma} \rfloor, \ C>0, \ \gamma > 0$ and $\lfloor x \rfloor$ denoting the integer floor of $x$. Thus, the choice of \( M \) does not drastically affect the desirable asymptotic properties of BSL. In addition, \cite{price2018bayesian} find in their examples that posterior inference depends only weakly on \( M \). Thus, \( M \) can be chosen to balance computational efficiency such that the standard deviation of the log synthetic likelihood is between 1 and 3 \citep{an2019accelerating}. 
+
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Simulation-based approaches: BSL, simulation exercise}
+    We simulate a dataset following the specification of the g-and-k distribution for the financial returns example, setting $\theta_1 = 0.8$, $a = 1$, $b = 0.5$, $g = -1$, and $k = 1$, with a sample size of 500. We use the same priors and summary statistics as in that example.
+\end{frame}
+
+\section{Optimization approaches}
+\begin{frame}
+	\frametitle{Optimization approaches}
+Traditional MCMC and importance sampling (IS) algorithms require pointwise evaluation of the likelihood function, which entails a massive number of operations when applied to very large datasets. These algorithms are not designed to be \textit{scalable}, at least in their standard form. Moreover, when the parameter space is large, they also lack \textit{scalability} with respect to the number of parameters. Therefore, approximation methods should be considered even when the likelihood function has an analytical expression.
+
+\textit{Optimization approaches} are designed to scale efficiently with high-dimensional parameter spaces and large datasets. The key idea is to replace simulation with optimization. In this section, we introduce the most common optimization approaches within the Bayesian inferential framework.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: Integrated Nested Laplace Approximations}
+\textit{Integrated Nested Laplace Approximations} (INLA) is a deterministic approach for Bayesian inference in latent Gaussian models (LGMs) \citep{rue2009approximate}. In particular, INLA approximates the marginal posterior distributions using a combination of Laplace approximations, low-dimensional deterministic integration and optimization steps in sparse covariance settings \citep{rue2017bayesian}. The advantages of INLA compared to MCMC are that it is fast and does not suffer from poor mixing.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+The point of departure is a structured additive regression model, where the response variable $y_i$ belongs to the exponential family such that the mean $\mu_i$ is linked to a linear predictor $\eta_i$ through the link function $g(\cdot)$, that is, $\eta_i=g(\mu_i)$, where
+\begin{align*}
+	\mu_i&=\alpha+\boldsymbol{\beta}^{\top}\boldsymbol{x}_{i}+\sum_{j=1}^{J}f^{(j)}(u_{ji})+\epsilon_{i},
+\end{align*}
+where $\alpha$ is the general intercept, $f^{(j)}$ are unknown functions of the covariates $\boldsymbol{u}_i$, $\boldsymbol{\beta}$ is a $K$-dimensional vector of linear effects associated with regressors $\boldsymbol{x}_i$, and $\epsilon_{i}$ is the unstructured error.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+Latent Gaussian models assign a Gaussian prior to $\alpha$, $\boldsymbol{\beta}$, $f^{(j)}$, and $\epsilon_{i}$. Let $\boldsymbol{z}$ denote the vector of all latent Gaussian variables $\left\{\alpha, \boldsymbol{\beta}, f^{(j)},\eta_{i}\right\}$, where the dimension is potentially \( P = 1 + K + J + N \) (although this is not always the case), and let $\boldsymbol{\theta}$ be the $m$-dimensional vector of hyperparameters. Then, the density $\pi(\boldsymbol{z} \mid \boldsymbol{\theta}_1)$ is Gaussian with mean zero and precision matrix (i.e., the inverse of the covariance matrix) $\boldsymbol{Q}(\boldsymbol{\theta}_1)$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+The distribution of $\boldsymbol{y}$ is $p(\boldsymbol{y}\mid \boldsymbol{z},\boldsymbol{\theta}_2)$ such that $y_i$ are conditional independent given $z_i$ and $\boldsymbol{\theta}_2$, $\boldsymbol{\theta}=[\boldsymbol{\theta}_1^{\top} \ \boldsymbol{\theta}_2^{\top}]^{\top}$, $i=1,2,\dots,N$. Thus, the posterior distribution is
+{\footnotesize{
+\begin{align}\label{eq:INLA1}
+	\pi(\boldsymbol{z},\boldsymbol{\theta}\mid \boldsymbol{y})&\propto \pi(\boldsymbol{\theta})\times \pi(\boldsymbol{z}\mid \boldsymbol{\theta}_1)\times \prod_{i=1}^{N}p(y_i\mid \boldsymbol{z},\boldsymbol{\theta}_2)\\
+	&\propto \pi(\boldsymbol{\theta})|\boldsymbol{Q}(\boldsymbol{\theta}_1)|^{1/2}\exp\left\{-\frac{1}{2}\boldsymbol{z}^{\top}\boldsymbol{Q}(\boldsymbol{\theta}_1)\boldsymbol{z}+\sum_{i=1}^N\log p(y_i\mid z_i,\boldsymbol{\theta}_2)\right\}.\nonumber
+\end{align}
+}}
+Most models in INLA assume a conditional independence structure within the high-dimensional latent Gaussian field; that is, $\boldsymbol{z}$ is a Gaussian Markov random field (GMRF) with a sparse precision matrix $\boldsymbol{Q}(\boldsymbol{\theta}_1)$. A second key assumption is that the dimension of $\boldsymbol{\theta}$ is small, for instance, $m < 15$. These assumptions are essential for enabling fast approximate inference.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+The main aim in INLA is to approximate the marginal posterior distributions $\pi(z_i\mid \boldsymbol{y})$ and $\pi(\theta_l\mid \boldsymbol{y})$, $l=1,2,\dots,m$.
+The posterior distribution of $\boldsymbol{\theta}$ is
+\begin{align*}	
+	\pi(\boldsymbol{\theta}\mid \boldsymbol{y})&\propto\frac{p(\boldsymbol{y}\mid \boldsymbol{z},\boldsymbol{\theta})\pi(\boldsymbol{z}\mid\boldsymbol{\theta})\pi(\boldsymbol{\theta})}{\pi(\boldsymbol{z}\mid \boldsymbol{\theta},\boldsymbol{y})}.
+\end{align*}
+INLA approximates it at specific values $\boldsymbol{\theta}_g$,
+\begin{align*}
+	\pi_a(\boldsymbol{\theta}_g\mid \boldsymbol{y})&\propto\frac{p(\boldsymbol{y}\mid \boldsymbol{z},\boldsymbol{\theta}_g)\pi(\boldsymbol{z}\mid\boldsymbol{\theta}_g)\pi(\boldsymbol{\theta}_g)}{\pi_{a,G}(\boldsymbol{z}\mid \boldsymbol{\theta}_g,\boldsymbol{y})},
+\end{align*} 
+where $\pi_{a,G}(z_i \mid \boldsymbol{\theta}_g, \boldsymbol{y})$ is a Gaussian approximation that matches the mode and covariance matrix of the full posterior $\pi(\boldsymbol{z} \mid \boldsymbol{\theta}, \boldsymbol{y})$. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+The approximation error of $\pi_a(\boldsymbol{\theta} \mid \boldsymbol{y})$ is \( O(N^{-1}) \) under standard conditions, meaning that the error, when multiplied by \( N \), remains bounded \cite{Tierney1986, rue2009approximate}. However, in many applications using INLA, the dimension of the latent Gaussian variables, \( P \), increases with the sample size. In such cases, the error rate becomes \( O(P/N) \). When \( P/N \rightarrow 1 \), which occurs in many models, the approximation error becomes \( O(1) \): bounded, but potentially large. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+The marginal posterior $\pi(z_i \mid \boldsymbol{\theta}, \boldsymbol{y})$ is more challenging to compute due to the potentially high dimension of $\boldsymbol{z}$. 
+\begin{align*}
+	\pi(z_i\mid \boldsymbol{\theta},\boldsymbol{y})&\propto \frac{p(\boldsymbol{y}\mid \boldsymbol{z},\boldsymbol{\theta})\pi(\boldsymbol{z}\mid\boldsymbol{\theta})\pi(\boldsymbol{\theta})}{\pi(\boldsymbol{z}_{-i}\mid z_i,\boldsymbol{\theta},\boldsymbol{y})}, 
+\end{align*}
+where the second-to-last equality follows from the identity $\pi(\boldsymbol{z}_{-i} \mid z_i, \boldsymbol{\theta}, \boldsymbol{y}) = \frac{p(\boldsymbol{z}, \boldsymbol{\theta}, \boldsymbol{y})}{p(z_i, \boldsymbol{\theta}, \boldsymbol{y})}$, and $-i$ denotes all elements of $\boldsymbol{z}$ except the $i$-th. 
+We can approximate the denominator in the last expression using a simplified Laplace approximation, which corrects the Gaussian approximation for location and skewness via a Taylor series expansion about the mode of the Laplace approximation \citep{rue2009approximate}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+We can obtain the marginal posterior distributions integrating with respect to $\boldsymbol{\theta}$,
+\begin{align*}
+	\pi(z_i\mid \boldsymbol{y})&=\int_{{\Theta}} \pi(z_i\mid \boldsymbol{\theta},\boldsymbol{y})\pi(\boldsymbol{\theta}\mid\boldsymbol{y})d\boldsymbol{\theta}\\
+	\pi(\theta_l\mid\boldsymbol{y})&=\int_{{\Theta}} \pi(\boldsymbol{\theta}\mid \boldsymbol{y})d\boldsymbol{\theta}_{-l}.
+\end{align*}
+This integrals are solve numerically using a smart grid around the mode of $\pi_a(\boldsymbol{\theta}\mid\boldsymbol{y})$. In particular, 
+\begin{align*}
+	\pi_a(z_i\mid \boldsymbol{y})&=\sum_{g=1}^G \pi_{a}(z_i\mid \boldsymbol{\theta}_g,\boldsymbol{y})\pi_a(\boldsymbol{\theta}_g\mid \boldsymbol{y})\Delta_g,
+\end{align*}
+where $\pi_{a}(z_i\mid \boldsymbol{\theta}_g,\boldsymbol{y})$ is the approximation of $\pi(z_i\mid \boldsymbol{\theta},\boldsymbol{y})$ evaluated at $\boldsymbol{\theta}_g$. Then, we have the sum over the values of $\boldsymbol{\theta}$ with area weights $\Delta_g$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+\begin{algorithm}[H]
+	\caption{Integrated nested Laplace approximations (INLA)}\label{INLA0}
+	\begin{algorithmic}[1]
+		\State Obtain the mode of $\pi_a(\boldsymbol{\theta}\mid \boldsymbol{y})$, that is $\boldsymbol{\theta}^*$, by maximizing $\log \pi_a(\boldsymbol{\theta}\mid \boldsymbol{y})$
+		\State Compute $\pi_a(\boldsymbol{\theta}_g\mid \boldsymbol{y})$ for a set of high density points $\boldsymbol{\theta}_g$, $g=1,2,\dots,G$
+		\State Compute the approximation $\pi_a(z_i\mid \boldsymbol{\theta}_g,\boldsymbol{y})$, $g=1,2,\dots,G$
+		\State Compute $\pi_a(z_i\mid \boldsymbol{y})$ and $\pi_a(\theta_l\mid\boldsymbol{y})$ using numerical integration     
+	\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA}
+INLA can be used in LGMs that satisfy \citep{rue2017bayesian,martino2019integrated}:
+\begin{enumerate}
+	\item There is conditional independence, that is, $y_i\perp y_s \mid \eta_i,\boldsymbol{\theta}$, such that $p(\boldsymbol{y}\mid \boldsymbol{z},\boldsymbol{\theta})=\prod_{i=1}^{N}p(y_i\mid \eta_i,\boldsymbol{\theta})$.
+	\item The dimension of $\boldsymbol{\theta}$ is small, less than 15.
+	\item $\boldsymbol{z}$ is a GMRF with sparse precision matrix.
+	\item The linear predictor depends linearly on the smooth unknown functions of covariates.
+	\item The inference is on the marginal posterior distributions $\pi(z_i\mid \boldsymbol{y})$ and $\pi(\theta_l\mid \boldsymbol{y})$.  
+\end{enumerate} 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: INLA, Poisson model with unobserved heterogeneity}
+Let's simulate the model $Y_i \sim \text{Poisson}(\lambda_i)$, where $\lambda_i = \exp\left\{1 + x_i + \epsilon_i\right\}$, with $\epsilon_i \sim \mathcal{N}(0, 0.5^2)$ and $x_i \sim \mathcal{N}(0, 1^2)$ for $i = 1, 2, \dots, 10,\!000$. Note that $\epsilon_i$ represents the unobserved heterogeneity.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: Variational Bayes}
+The goal in VB is to approximate the posterior distribution using a distribution $q(\boldsymbol{\theta})$ from a variational family $\mathcal{Q}$ —a class of distributions that is computationally convenient yet flexible enough to closely approximate the true posterior \cite{blei2017variational}-. The distribution $q$ is called the \textit{variational approximation} to the posterior, and a particular $q$ in $\mathcal{Q}$ is defined by a specific set of \textit{variational parameters}. Typically, this approximation is obtained by minimizing the Kullback–Leibler (KL) divergence between $q(\boldsymbol{\theta})$ and $\pi(\boldsymbol{\theta} \mid \mathbf{y})$.
+\begin{align}\label{eq:VB1}
+	q^*(\boldsymbol{\theta}):=\underset{q \in \mathcal{Q}}{\argmin} \  \text{KL}(q(\boldsymbol{\theta})||\pi(\boldsymbol{\theta} \mid \mathbf{y})),
+\end{align}  
+where $\text{KL}(q(\boldsymbol{\theta}) \| \pi(\boldsymbol{\theta} \mid \mathbf{y})) = \mathbb{E}_q\left[\log\left(\frac{q(\boldsymbol{\theta})}{\pi(\boldsymbol{\theta} \mid \mathbf{y})}\right)\right]$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+The optimization in Equation~\ref{eq:VB1} is not computable because it depends on the marginal likelihood $p(\boldsymbol{y})$, which is typically unknown due to the intractability of the integral involved. However, there is a solution to this problem. Let’s see:
+\begin{align*}
+	\log(p(\boldsymbol{y}))&=\log \mathbb{E}_q\left(\frac{p(\boldsymbol{y}, \boldsymbol{\theta})}{q(\boldsymbol{\theta})}\right)\\
+	&\geq \mathbb{E}_q\log\left(\frac{p(\boldsymbol{y}, \boldsymbol{\theta})}{q(\boldsymbol{\theta})}\right)\\
+	&=\mathbb{E}_q\log(p(\boldsymbol{y}, \boldsymbol{\theta}))-\mathbb{E}_q\log(q(\boldsymbol{\theta}))\\
+	&=\text{ELBO}(q(\boldsymbol{\theta})).
+\end{align*}
+The last term is the \textit{evidence lower bound} (ELBO), which serves as a lower bound for the marginal likelihood. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+The gap between the marginal likelihood and the ELBO is given by
+\begin{align*}
+	\log(p(\boldsymbol{y})) - \text{ELBO}(q(\boldsymbol{\theta}))
+	&=\text{KL}(q(\boldsymbol{\theta})||\pi(\boldsymbol{\theta} \mid \mathbf{y})).	 
+\end{align*}
+Then,
+\begin{align*}
+	\log(p(\boldsymbol{y})) = \text{KL}(q(\boldsymbol{\theta})||\pi(\boldsymbol{\theta} \mid \mathbf{y})) + \text{ELBO}(q(\boldsymbol{\theta})),  
+\end{align*} 
+which implies that maximizing the ELBO with respect to $q(\boldsymbol{\theta})$ is equivalent to minimizing the KL divergence, since $\log(p(\boldsymbol{y}))$ does not depend on $q(\boldsymbol{\theta})$.
+
+Thus, solving problem \ref{eq:VB1} is equivalent to solving
+\begin{align}\label{eq:VB2}
+	q^*(\boldsymbol{\theta}):=\underset{q \in \mathcal{Q}}{\argmax} \  \text{ELBO}(q(\boldsymbol{\theta})).
+\end{align}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+The most common approach for specifying $q(\boldsymbol{\theta})$ is to assume independence across blocks of $\boldsymbol{\theta}$, i.e., $q(\boldsymbol{\theta}) = \prod_{l=1}^K q_l(\boldsymbol{\theta}_l)$. This is known as the \textit{mean-field variational family}. Each $q_l(\boldsymbol{\theta}_l)$ is parameterized by a set of \textit{variational parameters}, and optimization is performed with respect to these parameters.
+
+\begin{align}\label{eq:VB3}
+	q_k^*(\boldsymbol{\theta}_k)
+	&\propto \exp\left(\mathbb{E}_{-k}(\log\left(p(\boldsymbol{\theta}_{k}\mid\boldsymbol{y},\boldsymbol\theta_{-k})\right))\right), k=1,2,\dots,K.
+\end{align}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+\begin{algorithm}[H]
+	\caption{Variational Bayes: Coordinate ascent variational inference}\label{VB0}
+	\begin{algorithmic}[1]
+		\State Initialize the variational factors $q_l^*(\boldsymbol{\theta}_l), l=1,2,\dots,K$
+		\While{ELBO $>\epsilon$, $\epsilon$ small} 
+			\For{$l=1,2,\dots,L$} 
+				\State Set $q_l^*(\boldsymbol{\theta}_l)\propto \exp\left(\mathbb{E}_{-l}(\log\left(p({\theta}_{l}\mid\boldsymbol{y},\boldsymbol\theta_{-l})\right))\right)$
+			\EndFor
+		\State Compute $\text{ELBO}(q)=\mathbb{E}_q\log(p(\boldsymbol{y}, \boldsymbol{\theta}))-\mathbb{E}_q\log(q(\boldsymbol{\theta}))$
+		\EndWhile 
+		\State Return $q(\boldsymbol{\theta})$ 
+	\end{algorithmic}
+\end{algorithm}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+\[
+\boldsymbol{y} = \boldsymbol{X} \boldsymbol{\beta} + \boldsymbol{\mu},
+\]
+where \( \boldsymbol{\mu} \sim N(\boldsymbol{0}, \sigma^2 \boldsymbol{I}) \). This implies that:
+\[
+\boldsymbol{y} \sim N(\boldsymbol{X} \boldsymbol{\beta}, \sigma^2 \boldsymbol{I}).\] 
+
+The conjugate priors for the parameters are
+\begin{align*}
+	\boldsymbol{\beta}\mid \sigma^2 & \sim N(\boldsymbol{\beta}_0, \sigma^2 {\boldsymbol{B}}_0),\\
+	\sigma^2 & \sim IG(\alpha_0/2, \delta_0/2).
+\end{align*}
+
+Then, the posterior distributions are $\boldsymbol{\beta}\mid \sigma^2, \boldsymbol{y}, \boldsymbol{X} \sim N(\boldsymbol{\beta}_n, \sigma^2\boldsymbol{B}_n)$, and 	$\sigma^2\mid  \boldsymbol{y}, \boldsymbol{X}\sim IG(\alpha_n/2, \delta_n/2)$, where $\boldsymbol{B}_n = (\boldsymbol{B}_0^{-1} + \boldsymbol{X}^{\top}\boldsymbol{X})^{-1}$, $\boldsymbol{\beta}_n = \boldsymbol{B}_n(\boldsymbol{B}_0^{-1}\boldsymbol{\beta}_0 + \boldsymbol{X}^{\top}\boldsymbol{X}\hat{\boldsymbol{\beta}})$, $\hat{\boldsymbol{\beta}}$ is the MLE, $\alpha_n = \alpha_0 + N$ and $\delta_n = \delta_0 + \boldsymbol{y}^{\top}\boldsymbol{y} + \boldsymbol{\beta}_0^{\top}\boldsymbol{B}_0^{-1}\boldsymbol{\beta}_0 - \boldsymbol{\beta}_n^{\top}\boldsymbol{B}_n^{-1}\boldsymbol{\beta}_n$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Optimization approaches: VB}
+ $q^*(\boldsymbol{\beta})$ is $N\left(\boldsymbol{\beta}_n,\left(\mathbb{E}_{\sigma^2}\left(\frac{1}{\sigma^2}\right)\right)^{-1}\boldsymbol{B}_n\right)$.
+
+ $q^*(\sigma^2)$ is $IG(\alpha_n/2,\delta_n/2)$, where $\alpha_n=N+K+\alpha_0$, and
+ {\footnotesize{
+\begin{align*}
+\delta_n&=\mathbb{E}_{\boldsymbol{\beta}}\left[(\boldsymbol{\beta}-\boldsymbol{\beta}_n)^{\top}\boldsymbol{B}_n^{-1}(\boldsymbol{\beta}-\boldsymbol{\beta}_n)\right]-\boldsymbol{\beta}_n^{\top}\boldsymbol{B}_n^{-1}\boldsymbol{\beta}_n+\boldsymbol{y}^{\top}\boldsymbol{y}+\boldsymbol{\beta}_0^{\top}\boldsymbol{B}_0^{-1}\boldsymbol{\beta}_0+\delta_0.
+\end{align*} 
+\begin{align*}
+	\text{ELBO}(q(\boldsymbol{\beta},\sigma^2))&=\mathbb{E}_{\boldsymbol{\beta},\sigma^2}[\log p(\boldsymbol{y},\boldsymbol{\beta},\sigma^2\mid\boldsymbol{X})]-\mathbb{E}_{\boldsymbol{\beta},\sigma^2}[\log q(\boldsymbol{\beta},\sigma^2)]\\
+	&=-\frac{N}{2}\log(2\pi)+\frac{\alpha_0}{2}\log(\delta_0/2)-\frac{\alpha_n}{2}\log(\delta_n/2)-0.5\log|\boldsymbol{B}_0|\\
+	&+0.5\log|\boldsymbol{B}_n|-\log\Gamma(\alpha_0/2)+\log\Gamma(\alpha_n/2)\\
+	&-K/2\log(\alpha_n/\delta_n)+0.5tr\left\{Var(\boldsymbol{\beta})\boldsymbol{B}_n^{-1}\right\}.
+\end{align*}
+}}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}

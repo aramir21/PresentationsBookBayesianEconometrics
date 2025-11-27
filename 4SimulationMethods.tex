@@ -1,0 +1,756 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Simulation Methods}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Simulation methods}
+	\begin{itemize}
+		\item Realistic models are often more complex than conjugate models. In addition, there is lack of closed-form solutions.
+		\item To address this complexity, we rely on simulation (stochastic) methods to draw samples from posterior and predictive distributions.
+	\end{itemize}
+\end{frame}
+
+\section{Markov chain Monte Carlo}
+\begin{frame}
+\frametitle{Markov chain Monte Carlo}
+	\begin{itemize}
+		\item Markov Chain Monte Carlo (MCMC) methods are algorithms used to approximate complex probability distributions by constructing a Markov chain. 
+		\item This chain is a sequence of random samples where each sample depends only on the previous one. 
+		\item The goal of MCMC methods is to obtain draws from the posterior distribution as the equilibrium distribution.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Markov chain Monte Carlo}
+	\begin{itemize}
+		\item The Markov chain must be \textit{irreducible}, meaning that the process can reach any other state with positive probability.
+		\item The process must be \textit{aperiodic}, ensuring that there are no cycles forcing the system to return to a state only after a fixed number of steps.
+		\item The process must be \textit{positive recurrent}, meaning that the expected return time to a state is finite.
+		\item Given an irreducible, aperiodic, and positive recurrent transition density, the Markov chain algorithm will asymptotically converge to the stationary posterior distribution we are seeking.
+	\end{itemize}
+\end{frame}
+
+\subsection{Gibbs sampler}
+\begin{frame}
+	\frametitle{Gibbs sampler}
+	\begin{itemize}
+		\item The Gibbs sampler algorithm is one of the most widely used MCMC methods for sampling from non-standard distributions in Bayesian analysis.
+		\item The key requirement for implementing the Gibbs sampling algorithm is the availability of conditional posterior distributions.
+		\item The algorithm works by cycling through the conditional posterior distributions corresponding to different blocks of the parameter space under inference.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Gibbs sampler}
+	\begin{algorithm}[H]
+		\caption{Gibbs sampling}\label{Alg:Gibbs}
+		\begin{algorithmic}[1]  		 			
+			\State Set $\bm{\theta}_2^{(0)}$, $\bm{\theta}_3^{(0)}$, ..., $\bm{\theta}_d^{(0)}$
+			\For{\texttt{$s=1,\dots,S$}}
+			\State Draw $\bm{\theta}_1^{(s)}$ from $\pi(\bm{\theta}_1^{(s)}\mid \bm{\theta}_2^{(s-1)},\dots,\bm{\theta}_d^{(s-1)},\bm{y})$
+			\State Draw $\bm{\theta}_2^{(s)}$ from $\pi(\bm{\theta}_2^{(s)}\mid \bm{\theta}_1^{(s)},\dots,\bm{\theta}_d^{(s-1)},\bm{y})$
+			\State $\vdots$
+			\State Draw $\bm{\theta}_d^{(s)}$ from $\pi(\bm{\theta}_d^{(s)}\mid \bm{\theta}_1^{(s)},\dots,\bm{\theta}_{d-1}^{(s)},\bm{y})$ 
+			\EndFor 
+		\end{algorithmic}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Gibbs sampler}
+\begin{block}{Example: Mining desasters}
+	This dataset records the number of mining disasters per year from 1851 to 1962 in British coal mines.
+	
+	We assume there is an unknown structural change point in the number of mining disasters, where the parameters of the Poisson distributions change. In particular,
+	\begin{align*}
+		p(y_t)=\begin{Bmatrix}
+			\frac{\exp(-\lambda_1)\lambda_1^{y_t}}{y_t!}, & t=1,2,\dots,H\\
+			\frac{\exp(-\lambda_2)\lambda_2^{y_t}}{y_t!}, & t=H+1,\dots,T\\
+		\end{Bmatrix},
+	\end{align*}  
+	where $H$ is the changing point.
+
+\end{block}
+\end{frame}
+
+\begin{frame}{Gibbs sampler}
+	\begin{block}{Example: Mining desasters}
+		We use conjugate families for $\lambda_l$, $l = 1, 2$, where $\lambda_l \sim G(\alpha_{l0}, \beta_{l0})$, and set $\pi(H) = 1 / T$, which corresponds to a discrete uniform distribution for the change point. This implies that, a priori, we assume equal probability for any time to be the change point.
+		
+	\end{block}
+\end{frame}
+
+\begin{frame}{Gibbs sampler}
+	\begin{block}{Example: Mining desasters}
+The posterior distribution is
+{\small{
+\begin{align*}
+	\pi(\lambda_1,\lambda_2,H\mid \bm{y})&\propto \prod_{t=1}^{H} \frac{\exp(-\lambda_1)\lambda_1^{y_t}}{y_t!} \prod_{t=H+1}^{T}\frac{\exp(-\lambda_2)\lambda_2^{y_t}}{y_t!}\\
+	&\times \exp(-\beta_{10}\lambda_1)\lambda_1^{\alpha_{10}-1} \exp(-\beta_{20}\lambda_2)\lambda_2^{\alpha_{20}-1} 1/T\\
+	&\propto\exp(-H\lambda_1)\lambda_1^{\sum_{t=1}^H y_t}\exp(-(T-H)\lambda_2)\lambda_2^{\sum_{t=H+1}^T y_t}\\
+	&\times \exp(-\beta_{10}\lambda_1)\lambda_1^{\alpha_{10}-1} \exp(-\beta_{20}\lambda_2)\lambda_2^{\alpha_{20}-1}.
+\end{align*} 
+}}
+$\lambda_1\mid \lambda_2,H,\bm{y}\sim G(\alpha_{1n},\beta_{1n})$, $\beta_{1n}=H+\beta_{10}$ and $\alpha_{1n}=\sum_{t=1}^H y_t+\alpha_{10}$, $\lambda_2\mid \lambda_1,H,\bm{y}\sim G(\alpha_{2n},\beta_{2n})$, $\beta_{2n}=(T-H)+\beta_{20}$ and $\alpha_{2n}=\sum_{t=H+1}^T y_t+\alpha_{20}$.		
+	\end{block}
+\end{frame}
+
+\begin{frame}{Gibbs sampler}
+	\begin{block}{Example: Mining desasters}
+The conditional posterior distribution of the change point is
+{\scriptsize{
+\begin{align*}
+	\pi(H\mid \lambda_1,\lambda_2,\bm{y})&\propto\exp(-H\lambda_1)\lambda_1^{\sum_{t=1}^H y_t}\exp(-(T-H)\lambda_2)\lambda_2^{\sum_{t=H+1}^T y_t}\\
+	&\propto \exp(-H(\lambda_1-\lambda_2))\lambda_1^{\sum_{t=1}^H y_t}\lambda_2^{\sum_{t=H+1}^T y_t} \exp(-T\lambda_2) \frac{\lambda_2^{\sum_{t=1}^H y_t}}{\lambda_2^{\sum_{t=1}^H y_t}}\\
+	&\propto \exp(-H(\lambda_1-\lambda_2))\left(\frac{\lambda_1}{\lambda_2}\right)^{\sum_{t=1}^H y_t}.
+\end{align*} 
+}}
+Thus, the conditional posterior distribution of $H$ is
+{\scriptsize{
+\begin{align*}
+	\pi(H\mid \lambda_1,\lambda_2,\bm{y})=& \frac{\exp(-H(\lambda_1-\lambda_2))\left(\frac{\lambda_1}{\lambda_2}\right)^{\sum_{t=1}^H y_t}}{\sum_{H=1}^T \exp(-H(\lambda_1-\lambda_2))\left(\frac{\lambda_1}{\lambda_2}\right)^{\sum_{t=1}^H y_t}}, & H=1,2,\dots,T.
+\end{align*}
+}}		
+\end{block}
+\end{frame}
+	
+\subsection{Metropolis-Hastings}
+\begin{frame}{Metropolis-Hastings}
+\begin{itemize}
+	\item The Metropolis-Hastings (M-H) algorithm \citep{metropolis53,hastings70} is a general MCMC method that does not require standard closed-form solutions for the conditional posterior distributions.
+	\item The transition kernel must satisfy the \textit{balancing condition}, meaning that, given a realization $\bm{\theta}^{(s-1)}$ at stage $s-1$ from the stationary distribution $\pi(\bm{\theta} \mid  \bm{y})$, we generate a candidate draw $\bm{\theta}^{c}$ from the \textit{proposal distribution} $q(\bm{\theta}^{c} \mid  \bm{\theta}^{(s-1)})$ at stage $s$ such that:
+	\[
+	q(\bm{\theta}^{c} \mid  \bm{\theta}^{(s-1)}) \pi(\bm{\theta}^{(s-1)} \mid  \bm{y}) = q(\bm{\theta}^{(s-1)} \mid  \bm{\theta}^{c}) \pi(\bm{\theta}^{c} \mid  \bm{y}),
+	\]
+	
+	which implies that the probability of moving from $\bm{\theta}^{(s-1)}$ to $\bm{\theta}^{c}$ is equal to the probability of moving from $\bm{\theta}^{c}$ to $\bm{\theta}^{(s-1)}$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Metropolis-Hastings}
+In general, the \textit{balancing condition} is not automatically satisfied, and we must introduce an \textit{acceptance probability} $\alpha(\boldsymbol{\theta}^{(s-1)}, \boldsymbol{\theta}^{c})$ to ensure that the condition holds:
+
+\[
+q(\boldsymbol{\theta}^{c} \mid  \boldsymbol{\theta}^{(s-1)}) \pi(\boldsymbol{\theta}^{(s-1)} \mid  \mathbf{y}) \alpha(\boldsymbol{\theta}^{(s-1)}, \boldsymbol{\theta}^{c}) = q(\boldsymbol{\theta}^{(s-1)} \mid  \boldsymbol{\theta}^{c}) \pi(\boldsymbol{\theta}^{c} \mid  \mathbf{y}).
+\]
+
+Thus, the acceptance probability is given by:
+
+\[
+\alpha(\boldsymbol{\theta}^{(s-1)}, \boldsymbol{\theta}^{c}) = 
+\min\left\{\frac{q(\boldsymbol{\theta}^{(s-1)} \mid  \boldsymbol{\theta}^{c}) \pi(\boldsymbol{\theta}^{c} \mid  \mathbf{y})}{q(\boldsymbol{\theta}^{c} \mid  \boldsymbol{\theta}^{(s-1)}) \pi(\boldsymbol{\theta}^{(s-1)} \mid  \mathbf{y})}, 1\right\},
+\]
+
+where $q(\boldsymbol{\theta}^{c} \mid  \boldsymbol{\theta}^{(s-1)})$ and $\pi(\boldsymbol{\theta}^{(s-1)} \mid  \mathbf{y})$ must be nonzero, as transitioning from $\boldsymbol{\theta}^{(s-1)}$ to $\boldsymbol{\theta}^{c}$ is only possible under these conditions.
+\end{frame}
+	
+\begin{frame}{Metropolis-Hastings}
+	\begin{algorithm}[H]
+		\caption{Metropolis-Hastings algorithm}\label{Alg:MH}
+		\begin{algorithmic}[1]
+			\State Set $\bm{\theta}^{(0)}$ in the support of $\pi(\bm{\theta}\mid \bm{y})$
+			\For{\texttt{$s=1,\dots,S$}}
+			\State Draw $\bm{\theta}^{c}$ from $q(\bm{\theta}^{c}\mid \bm{\theta}^{(s-1)})$
+			\State Calculate $\alpha(\bm{\theta}^{(s-1)}, \bm{\theta}^{c}) = 
+			\min\left\{\frac{q(\bm{\theta}^{(s-1)} \mid  \bm{\theta}^{c}) \pi(\bm{\theta}^{c} \mid  \bm{y})}{q(\bm{\theta}^{c} \mid  \bm{\theta}^{(s-1)}) \pi(\bm{\theta}^{(s-1)} \mid  \bm{y})}, 1\right\}$
+			\State Draw $U$ from $U(0,1)$
+			\State $\bm{\theta}^{(s)}=
+			\begin{cases}
+				\bm{\theta}^{c}, & \text{if } U \leq \alpha(\bm{\theta}^{(s-1)}, \bm{\theta}^{c}) \\
+				\bm{\theta}^{(s-1)}, & \text{otherwise}
+			\end{cases}$
+			\EndFor 
+		\end{algorithmic}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Metropolis-Hastings}
+\begin{itemize}
+	\item We do not need to know the marginal likelihood to implement the M-H algorithm.
+	\item The Gibbs sampling algorithm is a particular case of the M-H algorithm where the acceptance probability is equal to 1.
+	\item We can combine the M-H and Gibbs sampling algorithms when dealing with relatively complex posterior distributions .
+	\item We can note that the transition kernel in the M-H algorithm is a mixture of a continuous density ($q(\boldsymbol{\theta}^c \mid  \boldsymbol{\theta}^{(s-1)})$) and a probability mass function ($\alpha(\boldsymbol{\theta}^{(s-1)}, \boldsymbol{\theta}^c)$).
+	\item A crucial point associated with the proposal densities is the acceptance probability. Low or high acceptance probabilities are not ideal. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Metropolis-Hastings}
+	\begin{block}{Proposal distributions}
+			\begin{itemize}
+			\item The independent proposal, $q(\bm{\theta}^{c} \mid  \bm{\theta}^{(s-1)}) = q(\bm{\theta}^{c})$.
+			\item The random walk proposal, $\bm{\theta}^{c} = \bm{\theta}^{(s-1)} + \bm{\epsilon}$, where $\bm{\epsilon}$ is a random perturbation. If $p(\boldsymbol{\epsilon}) = p(-\boldsymbol{\epsilon})$, meaning the distribution $p(\boldsymbol{\epsilon})$ is symmetric around zero, then $q(\boldsymbol{\theta}^c \mid \boldsymbol{\theta}^{(s-1)}) = q(\boldsymbol{\theta}^{(s-1)} \mid \boldsymbol{\theta}^c)$.
+			\item The tailored proposal, the density is designed to have fat tails, is centered at the mode of the posterior distribution, and its scale matrix is given by the negative inverse Hessian matrix evaluated at the mode.
+			\item Use a random walk proposal such that $\boldsymbol{\epsilon} \sim N(\boldsymbol{0}, c^2 \boldsymbol{\Sigma})$, where $\boldsymbol{\Sigma}$ is the negative inverse Hessian matrix evaluated at the mode, that is, maximize with respect to all parameters, and set $c \approx 2.4 / \sqrt{\text{dim}(\boldsymbol{\theta})}$. 
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Metropolis-Hastings}
+	\begin{block}{Example: Ph.D. students sleeping hours continues}
+In the Ph.D. students sleeping hours exercise of Chapter 3 we get a posterior distribution that is Beta with parameters 16.55 and 39.57. We can sample from this posterior distribution using the function \textit{rbeta} from \textbf{R}. However, we want to compare the performance of a M-H algorithm using as proposal density a $U(0,1)$ distribution.
+	\end{block}
+\end{frame}
+
+\subsection{Hamiltonian Monte Carlo}
+\begin{frame}{Hamiltonian Monte Carlo}
+	\begin{block}{Hamiltonian Monte Carlo}
+		\begin{itemize}
+			\item HMC extends the Metropolis algorithm to efficiently explore the parameter space by introducing momentum variables. HMC is particularly advantageous for high-dimensional posterior distributions, as it reduces the risk of getting stuck in local modes and significantly improves mixing.
+			
+			\item HMC is designed to work with strictly positive target densities. Therefore, transformations are required to handle bounded parameters, such as variances and proportions. These transformations necessitate the use of the change-of-variable theorem to compute the log posterior density and its gradient, which are essential for implementing the HMC algorithm.  
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Hamiltonian Monte Carlo}
+	\begin{block}{Hamiltonian Monte Carlo}
+HMC uses a \textit{momentum variable} (\(\delta_k\)) for each \(\theta_k\), so that the transition kernel of \(\bm{\theta}\) is determined by \(\bm{\delta}\).
+
+The joint density in HMC is given by \( p(\bm{\theta}, \bm{\delta} \mid  \bm{y}) = \pi(\bm{\theta} \mid  \bm{y}) \times p(\bm{\delta}) \), where \(\bm{\delta} \sim N(\bm{0}, \bm{M})\), and \(\bm{M}\) is a diagonal matrix such that \(\delta_k \sim N(0, M_{kk})\). 
+	\end{block}
+\end{frame}
+
+\begin{frame}{Hamiltonian Monte Carlo}
+		\begin{algorithm}[H]
+			{\tiny{
+		\caption{Hamiltonian Monte Carlo}\label{Alg:HMC}	
+		\begin{algorithmic}[1]
+			\State Initiate at $\bm{\theta}^{(0)}$ in the support of $\pi(\bm{\theta}\mid \bm{y})$, and set step size $\epsilon$, leapfrog steps $L$, and iterations $S$
+			\State Draw $\bm{\delta}^{(0)}$ from $N(\bm{0}, \bm{M})$
+			\For{\texttt{$s = 1,\dots,S$}}
+			\For{\texttt{$l = 1,\dots,L$}}
+			\If{$l = 1$}
+			\State $\bm{\delta}^c \gets \bm{\delta}^{(s-1)} + \frac{1}{2}\epsilon \frac{d \log \pi(\bm{\theta} \mid \bm{y})}{d \bm{\theta}}$
+			\State $\bm{\theta}^c \gets \bm{\theta}^{(s-1)} + \epsilon \bm{M}^{-1} \bm{\delta}^c$
+			\ElsIf{$l < L$}
+			\State $\bm{\delta}^c \gets \bm{\delta}^c + \epsilon \frac{d \log \pi(\bm{\theta} \mid \bm{y})}{d \bm{\theta}}$
+			\State $\bm{\theta}^c \gets \bm{\theta}^c + \epsilon \bm{M}^{-1} \bm{\delta}^c$
+			\Else
+			\State $\bm{\delta}^c \gets \bm{\delta}^c + \frac{1}{2}\epsilon \frac{d \log \pi(\bm{\theta} \mid \bm{y})}{d \bm{\theta}}$
+			\State $\bm{\theta}^c \gets \bm{\theta}^c + \epsilon \bm{M}^{-1} \bm{\delta}^c$
+			\EndIf
+			\EndFor
+			\State Calculate $\alpha = \min\left\{ \frac{p(\bm{\delta}^c) \pi(\bm{\theta}^c \mid \bm{y})}{p(\bm{\delta}^{(s-1)}) \pi(\bm{\theta}^{(s-1)} \mid \bm{y})}, 1 \right\}$
+			\State Draw $U \sim \mathcal{U}(0,1)$
+			\State $\bm{\theta}^{(s)} = 
+			\begin{cases}
+				\bm{\theta}^c, & \text{if } U \leq \alpha \\
+				\bm{\theta}^{(s-1)}, & \text{otherwise}
+			\end{cases}$
+			\EndFor
+		\end{algorithmic}
+	}}
+	\end{algorithm}
+\end{frame}
+
+
+\begin{frame}{Example: Sampling from a bi-variate Gaussian distribution}
+	As a toy example, let's compare the Gibbs sampling, M-H and HMC algorithms when the posterior distribuion is a bi-variate Gaussian distribution with mean $\bm{0}$ and covariance matrix $\bm{\Sigma}=\begin{bmatrix}
+		1 & \rho \\
+		\rho & 1
+	\end{bmatrix}$. Let's set $\rho= 0.98$.
+	
+	The Gibbs sampler requires the conditional posterior distributions, which in this case are $\theta_1\mid \theta_2\sim N(\rho\theta_2,1-\rho^2)$ and $\theta_2\mid \theta_1\sim N(\rho\theta_1,1-\rho^2)$. We use the random walk proposal distribution for the M-H algorithm, where $\bm{\theta}^c\sim N(\bm{\theta}^{(s-1)}, \text{diag}\left\{0.18^2\right\})$. We set $\epsilon=0.05$, $L=20$ and $\bm{M}=\bm{I}_2$ for the HMC algorithm, and given that $\pi(\bm{\theta}\mid \bm{y})\propto \exp\left\{-\frac{1}{2}\bm{\theta}^{\top}\bm{\Sigma}^{-1}\bm{\theta}\right\}$, then $\frac{d\log(\pi(\bm{\theta}\mid \bm{y}))}{d\bm{\theta}}=-\bm{\Sigma}^{-1}\bm{\theta}$.
+\end{frame}
+
+\section{Importance sampling}
+\begin{frame}{Limitations of MCMC methods}
+	\begin{enumerate}
+		\item The samples are generated sequentially, which complicates parallel computing.
+		\item Consecutive samples are correlated, which reduces the effective sample size and complicates convergence diagnostics.
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}{Importance sampling}
+	Importance sampling (IS) avoids these limitations
+	\begin{enumerate}
+		\item IS does not require satisfying the balancing condition.
+		\item Importance weights can be reused to analyze posterior quantities, compute marginal likelihoods, compare models, approximate new target distributions.
+		\item IS allows for straightforward parallelization in large-scale problems.   
+	\end{enumerate}
+The critical challenge in IS lies in selecting an appropriate proposal distribution. This involves satisfying both support and stability conditions, which can be difficult to achieve, particularly in high-dimensional problems. In such cases, MCMC methods may be more suitable.
+\end{frame}
+
+\begin{frame}{Importance sampling}
+The starting point is evaluating the integral:
+\begin{align}\label{eq5_1}
+	\mathbb{E}_{\pi}[h(\bm{\theta})]=\int_{\bm{\Theta}} h(\bm{\theta}) \pi(\bm{\theta}\mid \bm{y})d\bm{\theta},
+\end{align}
+We can approximate Equation \ref{eq5_1} by
+\begin{align}\label{eq5_2}
+	\bar{h}(\bm{\theta})_S=\frac{1}{S}\sum_{s=1}^S h(\bm{\theta}^{(s)}), 
+\end{align}
+where $\bm{\theta}^{(s)}$ are draws from $\pi(\bm{\theta}\mid \bm{y})$. The \textit{strong law of large numbers} shows that $\bar{h}(\bm{\theta})_S$ converges (almost surely) to $\mathbb{E}_{\pi}[h(\bm{\theta})]$ as $S \rightarrow \infty$.
+\end{frame}
+
+\begin{frame}{Importance sampling}
+The challenge arises when we do not know how to obtain samples from $\pi(\bm{\theta}\mid \bm{y})$. The ingenious idea is to express Equation~\ref{eq5_1} in a different way using the \textit{importance sampling fundamental identity}:
+\begin{align}\label{eq5_3}
+	\mathbb{E}_{\pi}[h(\bm{\theta})]&=\int_{\bm{\Theta}} h(\bm{\theta}) \pi(\bm{\theta}\mid \bm{y})\frac{q(\bm{\theta})}{q(\bm{\theta})}d\bm{\theta}\nonumber\\
+	&=\mathbb{E}_{q}\left[\frac{h(\bm{\theta})\pi(\bm{\theta}\mid \bm{y})}{q(\bm{\theta})}\right],
+\end{align}   
+where $q(\bm{\theta})$ is the proposal distribution.
+\end{frame}
+
+\begin{frame}{Importance sampling}
+Thus, we have $$\frac{1}{S}\sum_{s=1}^S \left[\frac{h(\bm{\theta}^{(s)})\pi(\bm{\theta}^{(s)}\mid \bm{y})}{q(\bm{\theta}^{(s)})}\right]= \frac{1}{S}\sum_{s=1}^S h(\bm{\theta}^{(s)})w(\bm{\theta}^{(s)}),$$ where $w(\bm{\theta}^{(s)})= \left[\frac{\pi(\bm{\theta}^{(s)}\mid \bm{y})}{q(\bm{\theta}^{(s)})}\right]$ are called the \textit{importance weights}, and $\bm{\theta}^{(s)}$ are samples from the proposal distribution. This expression converges to $\mathbb{E}_{\pi}[h(\bm{\theta})]$ given that the support of $q(\bm{\theta})$ includes the support of $\pi(\bm{\theta}^{(s)}\mid \bm{y})$.
+\end{frame}
+
+\begin{frame}{Importance sampling}
+	\begin{itemize}
+		\item Importance sampling provides a way to simulate from the posterior distribution when there is no closed-form solution.
+		\item The method generates samples $\bm{\theta}^{(s)}$ from $q(\bm{\theta})$ and computes the importance weights $w(\bm{\theta}^{(s)})$. 
+		\item \textit{Sampling/importance resampling} (SIR) algorithm: If we \textit{resample} with replacement from $\bm{\theta}^{(1)},\bm{\theta}^{(2)},\dots,\bm{\theta}^{(S)}$, selecting $\bm{\theta}^{(s)}$ with probability proportional to  $w(\bm{\theta}^{(s)})$, we would get a sample $\bm{\theta}^{*(1)},\bm{\theta}^{*(2)},\dots,\bm{\theta}^{*(L)}$ of size $L$ from $\pi(\bm{\theta}\mid \bm{y})$ \citep{smith1992bayesian,rubin1988sir}. 
+		\item However, the weights $\pi(\bm{\theta}^{(s)}\mid \bm{y})/(Sq(\bm{\theta}^{(s)}))$ do not sum up to 1, and we need to standardize them, 
+		$$w^*(\bm{\theta}^{(s)})=\frac{\frac{1}{S} w(\bm{\theta}^{(s)})}{\frac{1}{S}\sum_{s=1}^Sw(\bm{\theta}^{(s)})}.$$   
+	\end{itemize}
+%This is named \textit{sampling/importance resampling} (SIR) algorithm. Observe that the number of times $L^{(s)}$ each particular point $\bm{\theta}^{(s)}$ is selected follows a binomial distribution with size $L$, and probabilities proportional to $w^{(s)}$. Consequently, the vector $L_{\bm{\theta}} = \left\{L_{\bm{\theta}^1}, L_{\bm{\theta}^2}, \dots, L_{\bm{\theta}^S}\right\}$ follows a multinomial distribution with $L$ trials and probabilities proportional to $w(\bm{\theta}^{(s)})$, $s = 1, 2, \dots, S$ \cite{cappe2007overview}. Therefore, the resampling step ensures that points in the first-stage sample with small importance weights are more likely to be discarded, while points with high weights are replicated in proportion to their importance weights. In most applications, it is typical to have $S \gg L$.
+\end{frame}
+
+
+\begin{frame}{Importance sampling}
+\begin{align*}
+	P(\bm{\theta}^*\in A)
+	&=\frac{1}{S}\sum_{s=1}^S{w}^{(s)}\mathbbm{1}_{A}(\bm{\theta}^{(s)})\\
+	&\rightarrow \mathbb{E}_q\left[\mathbbm{1}_{\in A}(\bm{\theta})\frac{\pi(\bm{\theta}\mid \bm{y})}{q(\bm{\theta})}\right]\\
+	&=\int_{A}\left[\frac{\pi(\bm{\theta}\mid \bm{y})}{q(\bm{\theta})}\right]q(\bm{\theta})d\bm{\theta}\\
+	&=\int_{A}\pi(\bm{\theta}\mid \bm{y})d\bm{\theta}. 
+\end{align*}
+Thus, $\bm{\theta}^*$ is approximately distributed as an observation from $\pi(\bm{\theta}\mid \bm{y})$. 
+\end{frame}
+
+\begin{frame}{Importance sampling}
+A nice by-product of implementing IS is that it easily allows the calculation of the marginal likelihood. In particular, we know from Bayes' rule that
+$$p(\bm{y})^{-1}=\frac{\pi(\bm{\theta}\mid \bm{y})}{p(\bm{y}\mid \bm{\theta})\times \pi(\bm{\theta})},$$
+then, 
+\begin{align*}
+	\int_{\bm{\Theta}}p(\bm{y})^{-1}q(\bm{\theta})d\bm{\theta}&=\int_{{\Theta}}\frac{q(\bm{\theta})}{p(\bm{y}\mid \bm{\theta})\times \pi(\bm{\theta})}\pi(\bm{\theta}\mid \bm{y})d\bm{\theta}\\
+	&=\mathbb{E}_{\pi}\left[\frac{q(\bm{\theta})}{p(\bm{y}\mid \bm{\theta})\times \pi(\bm{\theta})}\right].
+\end{align*}
+Thus, an estimate of the marginal likelihood is $\left[\frac{1}{S}\sum_{s=1}^S\frac{q(\bm{\theta}^{*(s)})}{p(\bm{y}\mid \bm{\theta}^{*(s)})\times\pi(\bm{\theta}^{*(s)})}\right]^{-1}$. This is the Gelfand-Dey method to calculate the marginal likelihood \citep{gelfand1994bayesian}.
+\end{frame}
+
+\begin{frame}{Example: Cauchy distribution}
+Let’s assume that the posterior distribution is Cauchy with parameters 0 and 1. We perform an importance sampling algorithm using as proposals a standard normal distribution and a Student’s t distribution with 3 degrees of freedom. The following code shows how to do this.
+\end{frame}
+
+\section{Particle filtering}
+
+\begin{frame}{Particle filtering}
+Consider the scenario where we need to sample from a posterior distribution whose dimension increases over time, $\pi(\bm{\theta}_{0:t}\mid \bm{y}_{0:t})$, for $t = 0, 1, \dots$. 
+\begin{itemize}
+	\item The challenge arises from the fact that, even if this posterior distribution is known, the computational complexity of implementing a sampling scheme in this context increases linearly with $t$.
+	\item MCMC methods are less optimal due to requiring a complete re-run whenever new information becomes available.  
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Particle filtering}
+We present sequential algorithms, which operate incrementally as new data becomes available, and are often a better alternative. 
+
+These algorithms are typically faster and are well-suited for scenarios requiring real-time updates, commonly referred to as online mode.
+\end{frame}
+
+\begin{frame}{Particle filtering}
+We consider the dynamic system in the \textit{state-space} representation. This is a system where there is an \textit{unobservable state vector} $\bm{\theta}_t\in\mathbb{R}^K$, and an observed variable $\bm{Y}_t$, $t=0,1,\dots$ such that
+\begin{enumerate}
+	\item $\bm{\theta}_t$ is a \textit{Markov process}, this is, $\pi(\bm{\theta}_{t}\mid \bm{\theta}_{1:t-1})=\pi(\bm{\theta}_{t}\mid \bm{\theta}_{t-1})$, $t=1,2,\dots$, all the relevant information to define $\bm{\theta}_{t}$ is in $\bm{\theta}_{t-1}$.
+	\item $\bm{Y}_t\perp \bm{Y}_s\mid \bm{\theta}_{t}$, $s<t$, there is independence between observable variables regarding their history conditional on the actual state vector. 
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{State-Space Model Diagram}
+	\begin{figure}
+		\centering
+		\begin{threeparttable}
+			\begin{tikzpicture}[
+				every node/.style={font=\small},
+				obs/.style={rectangle, draw=black, fill=gray!20, minimum size=12mm},
+				state/.style={circle, draw=black, fill=gray!20, minimum size=12mm},
+				arrow/.style={-Latex, thick},
+				node distance=1.5cm and 2.5cm
+				]
+				
+				% Nodes
+				\node[state] (x_t-1) {$\bm{\theta}_{t-1}$};
+				\node[state, right=of x_t-1] (x_t) {$\bm{\theta}_{t}$};
+				\node[state, right=of x_t] (x_t+1) {$\bm{\theta}_{t+1}$};
+				
+				\node[obs, above=of x_t-1] (y_t-1) {$Y_{t-1}$};
+				\node[obs, above=of x_t] (y_t) {$Y_t$};
+				\node[obs, above=of x_t+1] (y_t+1) {$Y_{t+1}$};
+				
+				% Arrows
+				\draw[arrow] (x_t-1) -- (x_t);
+				\draw[arrow] (x_t) -- (x_t+1);
+				
+				\draw[arrow] (x_t-1) -- (y_t-1);
+				\draw[arrow] (x_t) -- (y_t);
+				\draw[arrow] (x_t+1) -- (y_t+1);
+				
+				% Text annotations
+				\node[align=center, below=0.5cm of x_t] (text1)
+				{$\bm{\theta}_{t} \sim \pi(\bm{\theta}_{t} \mid \bm{\theta}_{t-1})$};
+				\node[align=center, above=0.5cm of y_t] (text2)
+				{$Y_t \sim p(Y_t \mid \bm{\theta}_t)$};
+				
+			\end{tikzpicture}
+			
+			\begin{tablenotes}
+				\item \tiny \textbf{Notes:} The figure illustrates the structure of a \textit{state-space} model where the latent states $\bm{\theta}_t$ evolve according to $\pi(\bm{\theta}_t \mid \bm{\theta}_{t-1})$, and the observations $Y_t$ depend on the states via $p(Y_t \mid \bm{\theta}_t)$.
+			\end{tablenotes}
+		\end{threeparttable}
+		
+		\caption{\textit{State-space} model representation.}
+		\label{fig:state_space}
+	\end{figure}
+	
+\end{frame}
+
+\begin{frame}{State-Space Model Diagram}
+Formally,
+\begin{align*}
+	\bm{\theta}_t &= h(\bm{\theta}_{t-1}, \bm{w}_t) & \text{(State equations)}\nonumber\\
+	Y_t & = f(\bm{\theta}_t, \mu_t)& \text{(Observation equation)},
+\end{align*}
+where $\bm{w}_t$ and $\mu_t$ are stochastic errors such that their probability distributions define the transition density $\pi(\bm{\theta}_t\mid \bm{\theta}_{t-1})$ and observation density $p(Y_t\mid \bm{\theta}_t)$. 
+\end{frame}
+
+\begin{frame}{Sequential importance sampling}
+The starting point is \textit{sequential importance sampling} (SIS), originally proposed by \cite{handschin1969monte}, which is a modification of IS to compute an estimate of $\pi(\bm{\theta}_{0:t}\mid \bm{y}_{0:t})$ without altering the past trajectories $\left\{\bm{\theta}^{(s)}_{1:t-1}, s=1,2,\dots,S\right\}$. The key idea is to use a proposal density that takes the form
+
+\begin{align*}
+	q(\bm{\theta}_{0:t}\mid \bm{y}_{0:t}) &= q(\bm{\theta}_{0:t-1}\mid \bm{y}_{1:t-1})q(\bm{\theta}_t\mid \bm{\theta}_{t-1},\bm{y}_{t}) \\
+	&= q(\bm{\theta}_0)\prod_{h=1}^{t}q(\bm{\theta}_h\mid \bm{\theta}_{h-1},\bm{y}_{h}).
+\end{align*}
+\end{frame}
+
+\begin{frame}{Sequential importance sampling}
+This proposal density allows calculating the weights sequentially,
+{\tiny{
+\begin{align*}
+	w_{t}(\bm{\theta}^{(s)}_{0:t})&=\frac{\pi(\bm{\theta}_{0:t}^{(s)}\mid \bm{y}_{0:t})}{q(\bm{\theta}_{0:t}^{(s)}\mid \bm{y}_{0:t})}\\
+	&=\frac{p(\bm{y}_{0:t}\mid \bm{\theta}_{0:t}^{(s)})\pi(\bm{\theta}_{0:t}^{(s)})}{p(\bm{y}_{0:t})q(\bm{\theta}_{0:t}^{(s)}\mid \bm{y}_{0:t})}\\
+	&=\frac{p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})p(\bm{y}_{1:t-1}\mid \bm{\theta}_{0:t-1}^{(s)})\pi(\bm{\theta}_{t}^{(s)}\mid \bm{\theta}_{t-1}^{(s)})\pi(\bm{\theta}_{0:t-1}^{(s)})}{p(\bm{y}_{0:t})q(\bm{\theta}_{t}^{(s)}\mid \bm{\theta}_{t-1}^{(s)},\bm{y}_{t})q(\bm{\theta}_{0:t-1}^{(s)}\mid \bm{y}_{1:t-1})}\\
+	&\propto\frac{p(\bm{y}_{1:t-1}\mid \bm{\theta}_{0:t-1}^{(s)})\pi(\bm{\theta}_{0:t-1}^{(s)})}{q(\bm{\theta}_{0:t-1}^{(s)}\mid \bm{y}_{1:t-1})}\frac{p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})\pi(\bm{\theta}_{t}^{(s)}\mid \bm{\theta}_{t-1}^{(s)})}{q(\bm{\theta}_{t}^{(s)}\mid \bm{\theta}_{t-1},\bm{y}_{t}^{(s)})}\\
+	&\propto w_{t-1}(\bm{\theta}^{(s)}_{0:t-1})\frac{p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})\pi(\bm{\theta}_{t}\mid \bm{\theta}_{t-1}^{(s)})}{q(\bm{\theta}_t^{(s)}\mid \bm{\theta}_{t-1}^{(s)},\bm{y}_{t})}\\
+	&\propto w_{t-1}^*(\bm{\theta}^{(s)}_{0:t-1})\frac{p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})\pi(\bm{\theta}_{t}\mid \bm{\theta}_{t-1}^{(s)})}{q(\bm{\theta}_t^{(s)}\mid \bm{\theta}_{t-1}^{(s)},\bm{y}_{t})}.
+\end{align*} 
+}}
+\end{frame}
+
+
+\begin{frame}{Sequential importance sampling}
+The term $\alpha_t(\bm{\theta}_{0:t}^{(s)})=\frac{p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})\pi(\bm{\theta}_{t}\mid \bm{\theta}_{t-1}^{(s)})}{q(\bm{\theta}_t^{(s)}\mid \bm{\theta}_{t-1}^{(s)},\bm{y}_{t})}$ is called the \textit{incremental importance weight}, and implies that
+	$$w_t(\bm{\theta}^{s}_{0:t})=w_0(\bm{\theta}^{s}_{0})\prod_{h=1}^{t}\alpha_h(\bm{\theta}_{1:h}^{(s)}).$$ 
+
+A relevant case is when the proposal distribution takes the form of the prior distribution, that is, $q(\bm{\theta}_{0:t}\mid \bm{y}_{0:t}) = \pi(\bm{\theta}_{0:t}) = \pi(\bm{\theta}_0)\prod_{h=1}^{t}\pi(\bm{\theta}_h\mid \bm{\theta}_{h-1})$. This implies that
+\begin{align*}
+	w_{t}(\bm{\theta}^{(s)}_{0:t})&\propto w_{t-1}^*(\bm{\theta}^{(s)}_{0:t-1})p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)}),
+\end{align*}
+this means that the \textit{incremental importance weight} is given by $p(\bm{y}_{t}\mid \bm{\theta}_{t}^{(s)})$. 
+\end{frame}
+
+\begin{frame}{Sequential Importance Sampling}
+	\begin{algorithm}[H]
+		\caption{Sequential Importance Sampling Algorithm}
+		\label{Alg:SIS}
+		{\scriptsize{
+		\begin{algorithmic}[1]
+			\For{\texttt{$s = 1,\dots,S$}}
+			\State Sample $\bm{\theta}_0^{(s)} \sim q(\bm{\theta}_0 \mid y_0)$
+			\State Compute weights: $w_0^{(s)} \propto \dfrac{p(y_0 \mid \bm{\theta}_0^{(s)}) \pi(\bm{\theta}_0^{(s)})}{q(\bm{\theta}_0^{(s)} \mid y_0)}$
+			\EndFor
+			\For{\texttt{$t = 1,\dots,T$}}
+			\For{\texttt{$s = 1,\dots,S$}}
+			\State Sample $\bm{\theta}_t^{(s)} \sim q_t(\bm{\theta}_t \mid \bm{\theta}_{t-1}, \bm{y}_t)$
+			\State Compute weights:
+			\[
+			w_t^{(s)} = w_{t-1}^{*(s)} \cdot \frac{p(\bm{y}_t \mid \bm{\theta}_t^{(s)}) \pi(\bm{\theta}_t^{(s)} \mid \bm{\theta}_{t-1}^{(s)})}{q(\bm{\theta}_t^{(s)} \mid \bm{\theta}_{t-1}^{(s)}, \bm{y}_t)}
+			\]
+			\EndFor
+			\State Normalize: $w_t^{*(s)} = \dfrac{w_t^{(s)}}{\sum_{h=1}^{S} w_t^{(h)}}$, \quad $s = 1, 2, \dots, S$
+			\EndFor
+		\end{algorithmic}
+	}}
+	\end{algorithm}
+\end{frame}
+
+
+\begin{frame}{Example: Dynamic linear model}
+Let's assume that the state-space representation is  
+\begin{align*}
+	{\theta}_t &= {\theta}_{t-1} + {w}_t & \text{(State equation)} \nonumber\\
+	Y_t & = \phi {\theta}_t + \mu_t & \text{(Observation equation)},
+\end{align*}
+where ${w}_t\sim N(0, \sigma_w^2)$ and $\mu_t\sim N(0,\sigma_{\mu}^2)$, $t=1,2,\dots,50$. In addition, we use the proposal distribution $q(\theta_t\mid y_t)=\pi(\theta_t)$, which is normal with mean $\theta_{t-1}$ and variance $\sigma_w^2$. Then, the weights are given by the recursion  
+\[ 
+w_t^{(s)} \propto w_{t-1}^{*(s)} p(y_t\mid \theta_t,\sigma_{\mu}^2), 
+\]  
+where $p(y_t\mid \theta_t,\sigma_{\mu}^2)$ is $N(\phi \theta_t, \sigma_{\mu}^2)$.   
+\end{frame}
+
+
+\begin{frame}{Example: Dynamic linear model}
+	We can compute the mean and standard deviation of the state at each $t$ using  
+	\[
+	\hat{\theta}_t = \sum_{s=1}^S w_t^{*(s)} \theta_t^{(s)}
+	\]  
+	and  
+	\[
+	\hat{\sigma}_{\theta} = \left(\sum_{s=1}^S w_t^{*(s)} \theta_t^{2(s)} - \hat{\theta}_t^2\right)^{1/2}.
+	\]  
+\end{frame}
+
+\begin{frame}{Sequential Importance Sampling}
+Sequential importance sampling is effective for sampling from the posterior distribution in the short term. However, SIS is a particular case of IS and, consequently, inherits the drawbacks of importance sampling. 
+\begin{itemize}
+	\item This implies that, as $t$ increases, the importance weights tend to degenerate in the long run; that is, all probability mass concentrates on a few weights, a phenomenon known as sample impoverishment or weight degeneracy.
+	\item This is because is impossible to accurately
+	represent a distribution on a space of arbitrarily high dimension with a sample of fixed, finite size. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrap Filter}
+	\begin{algorithm}[H]
+		\caption{The \textit{particle filter} algorithm}
+		\label{Alg:PF}
+		{\tiny{
+		\begin{algorithmic}[1]
+			\For{\texttt{$s = 1,\dots,S$}}
+			\State Sample $\bm{\theta}_0^{(s)} \sim q(\bm{\theta}_0 \mid y_0)$
+			\State Compute $w_0^{(s)} \propto 
+			\dfrac{p(y_0 \mid \bm{\theta}_0^{(s)}) \pi(\bm{\theta}_0^{(s)})}
+			{q(\bm{\theta}_0^{(s)} \mid y_0)}$
+			\EndFor
+			\State Normalize: $w_0^{*(s)} = \dfrac{w_0^{(s)}}{\sum_{h=1}^{S} w_0^{(h)}}$, for $s = 1, \dots, S$
+			\State Resample particles: $\left\{\bm{\theta}_0^{(s)}, w_0^{*(s)}\right\} \rightarrow \left\{\bm{\theta}_0^{r(s)}, \frac{1}{S} \right\}$
+			
+			\For{\texttt{$t = 1,\dots,T$}}
+			\For{\texttt{$s = 1,\dots,S$}}
+			\State Sample $\bm{\theta}_t^{(s)} \sim q_t(\bm{\theta}_t \mid \bm{\theta}_{t-1}, \bm{y}_t)$
+			\State Set $\bm{\theta}_{1:t}^{(s)} \gets (\bm{\theta}_{1:t-1}^{r(s)}, \bm{\theta}_t^{(s)})$
+			\State Compute importance weight: $\alpha_t^{(s)} = 
+			\dfrac{p(\bm{y}_t \mid \bm{\theta}_t^{(s)}) \pi(\bm{\theta}_t^{(s)} \mid \bm{\theta}_{t-1}^{(s)})}
+			{q(\bm{\theta}_t^{(s)} \mid \bm{\theta}_{t-1}^{(s)}, \bm{y}_t)}$
+			\EndFor
+			\State Normalize: $w_t^{*(s)} = \dfrac{w_t^{(s)}}{\sum_{h=1}^{S} w_t^{(h)}}$, for $s = 1, \dots, S$
+			\State Resample particles: $\left\{\bm{\theta}_{1:t}^{(s)}, w_t^{*(s)}\right\} \rightarrow \left\{\bm{\theta}_{1:t}^{r(s)}, \frac{1}{S} \right\}$
+			\EndFor
+		\end{algorithmic}
+	}}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Example: Dynamic linear model}
+If we apply the SIS algorithm to the dynamic linear model with a sample size of 200, the algorithm's performance deteriorates as $t$ increases. This is due to particle degeneration; at $t=200$, a single particle holds a weight close to 100\%.
+\end{frame}
+
+\begin{frame}{Bootstrap Filter}
+	\textit{Particle filtering} offers several advantages:
+	\begin{itemize}
+		\item Quick and easy to implement.
+		\item Modularity: Allowing one to simply adjust the expressions for the importance distribution and weights when changing the problem.
+		\item Parallelization 
+		\item Enables straightforward sequential inference for very complex models.  
+	\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Bootstrap Filter}
+	However, there are also disadvantages:
+	\begin{itemize}
+		\item The resampling step introduces extra Monte Carlo variability
+		\item Using the state transition (prior) density as the importance distribution often leads to poor performance, manifested in a lack of robustness with respect to the observed sequence.
+		\item Furthermore, the procedure is not well suited for sampling from $\pi(\bm{\theta}_{0:t}\mid y_{1:t})$ because most particles originate from the same ancestor.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrap Filter}
+	\begin{itemize}
+		\item Alternative resampling approaches, such as residual resampling \citep{Liu1995} and systematic resampling \citep{Carpenter1999}, preserve unbiasedness while reducing variance. Additionally, auxiliary particle filtering \citep{Cappe2007} can help decrease Monte Carlo variability.
+		\item Estimating fixed parameters such as $\sigma_w^2$, $\sigma_{\mu}^2$, and $\phi$ in the dynamic linear model poses a challenge. Various methods exist to address this issue; see \cite{Kantas2009,kantas2015particle} for a comprehensive review and \cite{Andrieu2010} for a seminal work in \textit{particle MCMC} methods.
+	\end{itemize}
+\end{frame}
+
+\section{Convergence diagnostics}
+
+\begin{frame}{Convergence diagnostics}
+	MCMC methods rely on
+	\begin{itemize}
+		\item \textit{Irreducibility}
+		\item \textit{Positive recurrence}
+		\item \textit{Aperiodicity}
+	\end{itemize}
+After a sufficient burn-in (warm-up) period, the posterior draws are sampled from the invariant stationary posterior distribution.
+\end{frame}
+
+\begin{frame}{Numerical standard error}
+If we have independent draws, we can estimate $\sigma^2_h(\bm{\theta})$ using the posterior draws as follows: 
+\[
+\hat{\sigma}^2_{Sh}(\bm{\theta}) = \frac{1}{S} \sum_{s=1}^S \left[h(\bm{\theta}^{(s)})\right]^2 - \left[\bar{h}(\bm{\theta})_S\right]^2.
+\]
+However, if there are dependent draws, we have
+{\scriptsize{
+\[
+\hat{\sigma}^{2*}_{Sh}(\bm{\theta}) = \frac{1}{S} \left\{\sum_{s=1}^S \left[h(\bm{\theta}^{(s)})-\bar{h}(\bm{\theta})_S\right]^2 + 2\sum_{l=k+1}^K \big(h(\bm{\theta}^{(l)}) - \bar{h}(\bm{\theta})\big)\big(h(\bm{\theta}^{(l-k)}) - \bar{h}(\bm{\theta})\big)\right\}.
+\]
+}}
+The \textit{numerical standard error} is given by $\sigma_h(\bm{\theta})/\sqrt{S}$ and serves as a measure of the approximation error in the Monte Carlo integration.
+\end{frame}
+
+\begin{frame}{Effective number of simulation draws}
+The effective sample size of the posterior draws, 
+\begin{align*}
+	S_{\text{ef}} &= \frac{S}{1 + 2\sum_{k=1}^{\infty} \rho_k(h)},
+\end{align*}
+where $\rho_k(h)$ is the autocorrelation of the sequence $h(\bm{\theta})$ at lag $k$.
+
+The sample counterpart of this expression is:
+\begin{align*}
+	\hat{S}_{\text{ef}} &= \frac{S}{1 + 2\sum_{k=1}^{K} \hat{\rho}_k(h)},
+\end{align*}
+where
+\begin{align*}
+	\hat{\rho}_k(h) &= \frac{\sum_{l=k+1}^K \big(h(\bm{\theta}^{(l)}) - \bar{h}(\bm{\theta})\big)\big(h(\bm{\theta}^{(l-k)}) - \bar{h}(\bm{\theta})\big)}{\sum_{s=1}^K \big(h(\bm{\theta}^{(s)}) - \bar{h}(\bm{\theta})\big)^2}.
+\end{align*}
+\end{frame}
+
+\begin{frame}{Test of convergence}
+\begin{block}{Geweke test}
+	A simple two-sample test of means. If the mean of the first window (10\% of the chain) is not significantly different from the mean of the second window (50\% of the chain), we do not reject the null hypothesis that the two segments of the chain are drawn from the same stationary distribution.
+\end{block}
+\end{frame}
+
+\begin{frame}{Test of convergence}
+	\begin{block}{Raftery and Lewis test}
+		Designed to calculate the approximate number of iterations ($S$), burn-in ($b$), and thinning parameter ($d$) required to estimate $p\left[H(\bm{\theta}) \leq h\right]$, where $H(\bm{\theta}): \mathcal{R}^K \rightarrow \mathcal{R}$. This calculation is based on a specific quantile of interest ($q$), precision ($r$), and probability ($p$). The diagnostic is based on the dependence factor, $I = \frac{S + b}{S_{\text{Min}}}$, where $S_{\text{Min}} = \Phi^{-1}\left(\frac{1}{2}(p+1)\right)^2 q(1-q) / r^2$, and $\Phi(\cdot)$ is the standard normal cumulative distribution function. Values of $I$ much greater than 5 indicate a high level of dependence.
+	\end{block}
+\end{frame}
+
+\begin{frame}{Test of convergence}
+	\begin{block}{Heidelberger and Welch test}
+Heidelberger and Welch's test uses a Cramér-von Mises statistic to test the null hypothesis that the sampled values, $\bm{\theta}^{(s)}$, are drawn from a stationary distribution.
+
+This test is recursively applied until either the null hypothesis is not rejected, or $s = 50\%$ of the chain has been discarded. Subsequently, the half-width test calculates a 95\% credible interval for the mean using the portion of the chain that passed the stationarity test. If the ratio of the half-width of this interval to the mean is less than 0.1, the test is considered passed. This indicates no evidence to reject the null hypothesis that the estimated mean is accurate and stable.
+	\end{block}
+\end{frame}
+
+\begin{frame}{Checking for errors in the posterior simulator}
+	\begin{block}{Marginal-conditional simulator}
+\begin{align*}
+	\bm{\theta}^{(s)} &\sim \pi(\bm{\theta})\\
+	\bm{y}^{(s)} &\sim p(\bm{y}\mid \bm{\theta}^{(s)})\\
+	h^{(s)} &= h(\bm{y}^{(s)},\bm{\theta}^{(s)}). 
+\end{align*}
+The sequence $\left\{\bm{y}^{(s)},\bm{\theta}^{(s)}\right\}$ is i.i.d., $\bar{h}_S$ converges almost surely to $\mathbb{E}[h(\bm{y},\bm{\theta})]$, and there is convergence in distribution when $\bar{h}_S$ is well standardized and $\hat{\sigma}^2_{Sh}(\bm{\theta})$ converges to ${\sigma}^2_h(\bm{\theta})$ almost surely.
+	\end{block}
+\end{frame}
+
+\begin{frame}{Checking for errors in the posterior simulator}
+	\begin{block}{Successive-conditional simulator}
+A posterior simulator produces draws $\bm{\theta}^{(s)}$ given a particular realization $\bm{y}_{\text{Obs}}$, using the transition density $q(\bm{\theta}\mid \bm{\theta}^{(s-1)},\bm{y}_{\text{Obs}})$. Thus, 
+\begin{align*}
+	\bm{y}^{(l)} &\sim p(\bm{y}\mid \bm{\theta}^{(l-1)})\\
+	\bm{\theta}^{(l)} &\sim q(\bm{\theta}\mid \bm{y}^{(l)},\bm{\theta}^{(l-1)})\\
+	h^{(l)} &= h(\bm{y}^{(l)},\bm{\theta}^{(l)}), 
+\end{align*}
+where $\bar{h}_L=L^{-1}\sum_{l=1}^L h(\bm{y}^{(l)},\bm{\theta}^{(l)})$ converges almost surely to $\mathbb{E}[h(\bm{y},\bm{\theta})]$, and there is convergence in distribution when $\bar{h}_L$ is well standardized, and $\hat{\sigma}^{*2}_{Lh}(\bm{\theta})$ converges to ${\sigma}^2_h(\bm{\theta})$ almost surely, for $l=1,2,\dots,L$.
+	\end{block}
+\end{frame}
+
+
+\begin{frame}{Checking for errors in the posterior simulator}
+	\begin{block}{Test}
+\begin{align*}
+	\frac{\bar{h}_S-\bar{h}_L}{\left(S^{-1}\hat{\sigma}^2_{Sh}(\bm{\theta})+L^{-1}\hat{\sigma}^{*2}_{Lh}(\bm{\theta})\right)^{1/2}} &\stackrel{d}{\rightarrow} N(0,1).
+\end{align*}
+Thus, we can test $H_0. \ \bar{h}_S-\bar{h}_L=0$ versus $H_1. \ \bar{h}_S-\bar{h}_L\neq 0$. Rejection of the null indicates potential errors in implementing the posterior simulator.
+	\end{block}
+\end{frame}
+
+\begin{frame}{Example: Mining disaster change point continues}
+Let's revisit the mining disaster change point example, and examine some convergence diagnostics for the posterior draws of the rate of disasters after the change point ($\lambda_2$).
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+	
+\end{document}

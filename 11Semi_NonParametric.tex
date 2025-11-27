@@ -1,0 +1,299 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Semi-parametric and non-parametric models}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+Non-parametric models are characterized by making minimal assumptions about the data-generating process. Unlike parametric models, which have a finite-dimensional parameter space, non-parametric models often involve infinite-dimensional parameter spaces. A major challenge in non-parametric modeling is the \textit{curse of dimensionality}, as these models require dense data coverage, necessitating large datasets to achieve reliable estimates.
+
+Semi-parametric methods, on the other hand, combine parametric assumptions for part of the model with non-parametric assumptions for the rest. This approach offers a balance between flexibility, tractability and applicability.
+\end{frame}
+
+\section{Gaussian mixtures}
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+Mixture models naturally arise in situations where a sample consists of draws from different \textit{subpopulations} (\textit{clusters}) that cannot be easily distinguished based on observable characteristics.  
+
+Even when distinct subpopulations do not exist, finite and infinite mixture models provide a useful framework for semi-parametric inference. They effectively approximate distributions with skewness, excess kurtosis, and multimodality, making them useful for modeling stochastic errors. In addition, mixture models help capture unobserved heterogeneity. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+A finite Gaussian mixture model for regression with \( H \) known components assumes that a sample 
+\( \boldsymbol{y}=\left[y_1 \ y_2 \ \dots \ y_N\right]^{\top} \) consists of observations \( y_i \), 
+for \( i=1,2,\dots,N \), where each \( y_i \) is generated from one of the \( H \) components, 
+\( h=1,2,\dots,H \), conditional on the regressors \( \boldsymbol{x}_i \). Specifically, we assume  
+\[
+y_i \mid \boldsymbol{x}_i \sim N(\boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h, \sigma_h^2).
+\]
+
+Thus, the sampling distribution of \( y_i \) is given by  
+\[
+p(y_i \mid \{\lambda_h, \boldsymbol{\beta}_h, \sigma_h^2\}_{h=1}^H, \boldsymbol{x}_i) = 
+\sum_{h=1}^H \lambda_h \phi(y_i \mid \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h, \sigma_h^2),
+\]
+
+where \( \phi(y_i \mid \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h, \sigma_h^2) \) is the Gaussian density with mean 
+\( \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h \) and variance \( \sigma_h^2 \), \( 0 < \lambda_h < 1 \) represents 
+the proportion of the population belonging to subpopulation \( h \), and the weights satisfy 
+\( \sum_{h=1}^H \lambda_h = 1 \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+To model a finite Gaussian mixture, we introduce an individual cluster indicator or latent class \( \psi_{ih} \) such that  
+\[
+\psi_{ih}=
+\begin{cases}
+	1, & \text{if the } i\text{-th unit is drawn from the } h\text{-th cluster}, \\
+	0, & \text{otherwise}.
+\end{cases}
+\]
+
+Thus, \( P(\psi_{ih}=1) = \lambda_h \) for all clusters \( h=1,2,\dots,H \) and units \( i=1,2,\dots,N \).
+
+This setting implies that  
+\[
+\boldsymbol{\psi}_i = [\psi_{i1} \  \psi_{i2} \ \dots \ \psi_{iH}]^{\top} \sim \text{Categorical}(\boldsymbol{\lambda}),
+\] 
+  
+where \( \boldsymbol{\lambda} = [\lambda_1 \  \lambda_2 \  \dots \ \lambda_H]^{\top} \) represents the event probabilities.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+We assume that  
+\[
+\pi(\boldsymbol{\lambda}) \sim \text{Dir}(\boldsymbol{\alpha}_0),
+\]  
+
+where \( \boldsymbol{\alpha}_0 = [\alpha_{10} \ \alpha_{20} \ \dots \ \alpha_{H0}]^{\top} \), $\alpha_{h0}=1/H$.
+
+We can assume conjugate families for the location and scale parameters to facilitate computation, that is, $\boldsymbol \beta_h\sim N(\boldsymbol{\beta}_{h0},\boldsymbol{B}_{h0})$ and $\sigma_h^2\sim IG(\alpha_{h0}/2,\delta_{h0}/2)$.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+This setting allows to obtain standard conditional posterior distributions: $$\boldsymbol{\beta}_{h}\sim N(\boldsymbol{\beta}_{hn},\boldsymbol{B}_{hn}),$$ where $\boldsymbol{B}_{hn}=(\boldsymbol{B}_{h0}^{-1}+\sigma_h^{-2}\sum_{\left\{i:  \psi_{ih}=1\right\}}\boldsymbol{x}_i\boldsymbol{x}_i^{\top})^{-1}$ and $\boldsymbol{\beta}_{hn}=\boldsymbol{B}_{hn}(\boldsymbol{B}_{h0}^{-1}\boldsymbol{\beta}_{h0}+\sigma_h^{-2}\sum_{\left\{i:  \psi_{ih}=1\right\}}\boldsymbol{x}_iy_i)$.
+$$\sigma_h^2\sim IG(\alpha_{hn}/2,\delta_{hn}/2),$$
+
+where $\alpha_{hn}=\alpha_{h0}+N_h$, $\delta_{hn}=\delta_{h0}+\sum_{\left\{i:  \psi_{ih}=1\right\}}(y_i-\boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h)^2$, and $N_h$ is the number of units in cluster $h$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures}
+$$\boldsymbol{\lambda}\sim \text{Dir}(\boldsymbol{\alpha}_n),$$   
+where $\boldsymbol{\alpha}_n=[\alpha_{1n} \  \alpha_{2n} \ \dots \ \alpha_{Hn}]^{\top}$, and $\alpha_{hn}=\alpha_{h0}+N_h$.
+
+$$\boldsymbol{\psi}_{in}\sim \text{Categorical}(\boldsymbol{\lambda}_n),$$
+where $P(\psi_{ih}=1)=\frac{\lambda_{h}\phi(y_i \mid \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h,\sigma_h^2)}{\sum_{j=1}^H\lambda_{j}\phi(y_i \mid \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_j,\sigma_j^2)}$.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian mixtures: Simulation exercise, the label-switching issue}
+Consider the following distribution:  
+
+$$p(y_i) = 0.75 \phi(y_i \mid \beta_{01},1^2) + 0.25 \phi(y_i \mid \beta_{02},1^2), \quad i = 1,2,\dots,500.$$
+
+Initially, we set $\beta_{01} = 0.5$ and $\beta_{02} = 2.5$. We perform 1,000 MCMC iterations, with a burn-in period of 500 and a thinning factor of 2. The following code demonstrates how to implement the Gibbs sampler using a prior normal distribution with mean 0 and variance 10, with the hyperparameters of the Dirichlet distribution set to $1/2$.
+
+We can implement \textit{random permutation of latent classes} to address this issue.
+\end{frame}
+
+\section{Direchlet processes}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+A Dirichlet process (DP) is a probability distribution over probability distributions, and a generalization of the Dirichlet distribution.
+A Dirichlet process $G\sim DP(\alpha G_0)$ is defined by a precision parameter $\alpha>0$, and a base probability measure $G_0$ on a probability space $\Omega$.
+The DP assigns probability $G(B)$ to any (measurable) set $B$ in $\Omega$ such that for any finite (measurable) partition $\left\{B_1, B_2, \dots, B_k\right\}$ of $\Omega$,  
+\[
+G(B_1),\dots, G(B_k) \sim \text{Dirichlet}(\alpha G_0(B_1), \dots, \alpha G_0(B_k)).
+\]
+In particular, $\mathbb{E}\left[G(B)\right]=G_0(B)$ and $\mathbb{V}ar\left[G(B)\right]=G_0(B)\left[1-G_0(B)\right]/(1+\alpha)$
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+A key property of the DP is its discrete nature, which allows it to be expressed as  
+\[
+G(\cdot)=\sum_{h=1}^{\infty}\lambda_h\delta_{\boldsymbol{\theta}_h}(\cdot),
+\]
+where $\lambda_h$ is the probability mass at $\boldsymbol{\theta}_h$, and $\delta_{\boldsymbol{\theta}_h}(\cdot)$ denotes the Dirac measure that assigns mass one to the atom $\boldsymbol{\theta}_h$.
+The \textit{stick-breaking} representation \citep{Sethuraman1994},
+\begin{align*}
+G(\cdot)&=\sum_{h=1}^{\infty}\lambda_h\delta_{\boldsymbol{\theta}_h}(\cdot),\\
+	\lambda_h&=V_h\prod_{m<h}(1-V_m), \quad V_h\sim \text{Beta}(1,\alpha),\\
+	\boldsymbol{\theta}_h&\stackrel{iid}{\sim} G_0.
+\end{align*}  
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+The Dirichlet process mixtures (DPM)
+\begin{align*}
+	f_G(y) &= \int f_{\boldsymbol{\theta}}(y) dG(\boldsymbol{\theta}).
+\end{align*}
+If we assume $y\sim N(\boldsymbol{x}_i^{\top}\boldsymbol{\beta},\sigma^2)$, then the DPM is 
+\[
+p(y_i \mid \{\lambda_h, \boldsymbol{\beta}_h, \sigma_h^2\}_{h=1}^{\infty}, \boldsymbol{x}_i) = 
+\sum_{h=1}^{\infty} \lambda_h \phi(y_i \mid \boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h, \sigma_h^2),
+\]
+where $\lambda_h$ are drawn from the stick-breaking representation of the DP, and $\boldsymbol{\theta}_h=[\boldsymbol{\beta}_h^{\top} \ \sigma^2_h]^{\top}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+This mixture model can be expressed in a hierarchical structure:
+\begin{align*}
+	y_i\mid \boldsymbol{\theta}_i & \stackrel{ind}{\sim}f_{\boldsymbol{\theta}_i}\\
+	\boldsymbol{\theta}_i \mid G & \stackrel{iid}{\sim} G\\
+	G \mid \alpha,G_0 & \sim DP(\alpha G_0).
+\end{align*}
+The hierarchical representation implies that there are latent assignment variables \( s_i = h \), such that when \( \boldsymbol{\theta}_i \) is equal to the \( h \)-th unique \( \boldsymbol{\theta}_h^* \) — that is, \( \boldsymbol{\theta}_i = \boldsymbol{\theta}_h^* \)— then \( s_i = h \). Then,
+\begin{align*}
+	s_i&\sim \sum_{h=0}^{\infty}\lambda_h\delta_h,\\
+	y_i\mid s_i, \boldsymbol{\theta}_{s_i}&\sim N(\boldsymbol{x}_i^{\top}\boldsymbol{\beta}_{s_i},\sigma^2_{s_i}),
+\end{align*} 
+where $\lambda_h=P(\boldsymbol{\theta}_{i}=\boldsymbol{\theta}_{h}^*)$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+We assume $\boldsymbol{\beta}_i\mid \sigma^2_i\sim N(\boldsymbol{\beta}_0, \sigma^2_i\boldsymbol{B}_0)$ and $\sigma_i^2\sim IG(\alpha_0/2,\delta_0/2)$. In addition, we can add a layer in the hierarchical representation, $\alpha\sim G(a,b)$ such that introducing the latent variable $\xi|\alpha,N\sim Be(\alpha+1,N)$, allows to easily sample the posterior draws of  $\alpha|\xi,H,\pi_{\xi}\sim\pi_{\xi}{G}(a+H,b-log(\xi))+(1-\pi_{\xi}){G}(a+H-1,b-log(\xi))$, where $\frac{\pi_{\xi}}{1-\pi_{\xi}}=\frac{a+H-1}{N(b-log(\xi))}$, $H$ is the number of atoms (mixture components) \citep{Escobar1995}.\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+The conditional posterior distribution of $\boldsymbol\theta_i$ is
+\begin{align*}
+	\boldsymbol\theta_i|\left\{\boldsymbol\theta_{i'},\boldsymbol s_{i'}:i'\neq i\right\}, y_i, \alpha & \sim \sum_{i'\neq i}\frac{N_h^{(i)}}{\alpha+N-1}f_N(y_i|\boldsymbol{x}_i^{\top}\boldsymbol{\beta}_h,\sigma_h^2)\\
+	& +\frac{\alpha}{\alpha+N-1}\int_{\mathcal{R}^K}\int_{0}^{\infty}f_N(y_i|\boldsymbol{x}_i^{\top}\boldsymbol{\beta},\sigma^2)\\
+	&\times f_N\left(\boldsymbol\beta\Big|\boldsymbol\beta_0,\sigma^2\boldsymbol B_0\right)f_{IG}(\sigma^2|\alpha_0,\delta_0)d\sigma^2 d\boldsymbol\beta,
+\end{align*}
+where $N_h^{(i)}$ is the number of observations such that $s_{i'}=h$, $i'\neq i$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+We sample $s_i$ as follows,
+\begin{equation*}
+	s_i|\left\{\boldsymbol\beta_{i'},\sigma_{i'}^2,\boldsymbol s_{i'}:i'\neq i\right\}, y_i, \alpha\sim\begin{Bmatrix}P(s_i=0|\cdot)=q_0^*\\
+		P(s_i=h|\cdot)=q_h^*, h=1,\dots,H^{(i)}\end{Bmatrix},
+\end{equation*}
+
+where $H^{(i)}$ is the number of clusters excluding $i$, which may have its own cluster (singleton cluster), $q^*_c=\frac{q_c}{q_0+\sum_h q_h}$, $q_c=\left\{q_0,q_h\right\}$, $q_h=\frac{N_h^{(i)}}{\alpha+N-1}f_N(y_i|\boldsymbol{x}_i^{\top}\boldsymbol\beta_h,\sigma_h^2)$ and $q_0=\frac{\alpha}{\alpha+N-1}p(y_i)$.
+
+If $s_i=0$ is sampled, then $s_i=H+1$, and a new $\sigma_h^2$ is sampled from $IG\left(\alpha_n/2,\delta_n/2\right)$, a new $\boldsymbol\beta_h$ is sample from $N(\boldsymbol\beta_n,\sigma_h^2\boldsymbol B_n)$.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes}
+Discarding $\boldsymbol\theta_h$'s from last step, we use $\boldsymbol s$ and the total number of components to sample $\sigma_h^2$ from 
+
+\begin{equation*}
+	IG\left(\frac{\alpha_0+N_m}{2},\frac{\delta_0+\boldsymbol y_h^{\top}\boldsymbol y_h+\boldsymbol{\beta}_0^{\top}{\boldsymbol{B}}_0^{-1}\boldsymbol{\beta}_0-\boldsymbol{\beta}_{hn}^{\top}{\boldsymbol{B}}_{hn}^{-1}\boldsymbol{\beta}_{hn}}{2}\right),
+\end{equation*}
+
+where $\boldsymbol{B}_{hn}=(\boldsymbol{B}_0^{-1}+\boldsymbol{X}_h^{\top}\boldsymbol{X}_h)^{-1}$ and $\boldsymbol{\beta}_{hn}=\boldsymbol{B}_{hn}(\boldsymbol{B}_0^{-1}\boldsymbol{\beta}_0+\boldsymbol{X}_h^{\top}\boldsymbol{y}_h)$, $\boldsymbol{X}_h$ and $\boldsymbol{y}_h$ have the $\boldsymbol{x}_i$ and $y_i$ of individuals in component $h$.
+
+We sample $\boldsymbol\beta_h$ from
+\begin{equation*}
+	N\left({\boldsymbol\beta}_{hn},\sigma_h^2\boldsymbol B_{hn}\right),
+\end{equation*}
+$h=1,2,\dots,H$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Direchlet processes: Consumption of marijuana in Colombia}
+Let's use the dataset \textit{MarijuanaColombia.csv} from our GitHub repository to perform inference on the demand for marijuana in Colombia. This dataset contains information on the (log) monthly demand in 2019 from the National Survey of the Consumption of Psychoactive Substances. It includes variables such as the presence of a drug dealer in the neighborhood (\textit{Dealer}), gender (\textit{Female}), indicators of good physical and mental health (\textit{PhysicalHealthGood} and \textit{MentalHealthGood}), age (\textit{Age} and \textit{Age2}), years of schooling (\textit{YearsEducation}), and (log) prices of marijuana, cocaine, and crack by individual (\textit{LogPriceMarijuana}, \textit{LogPriceCocaine}, and \textit{LogPriceCrack}). The sample size is 1,156. 
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}

@@ -1,0 +1,688 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta}
+
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Bayesian machine learning}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+Machine learning methods are often characterized by high-dimensional parameter spaces, particularly in the context of nonparametric inference. It is important to note that nonparametric inference does not imply the absence of parameters, but rather models with potentially infinitely many parameters. This setting is often referred to as the \textit{wide} problem, where the number of input variables, and consequently parameters, can exceed the sample size. Another common challenge in ML is the \textit{tall} problem, which occurs when the sample size is extremely large, necessitating scalable algorithms.
+\end{frame}
+
+\section{Cross-validation and Bayes factors}
+\begin{frame}
+	\frametitle{Cross-validation and Bayes factors}
+Prediction is central to machine learning, particularly in supervised learning. The starting point is a set of raw regressors or features, denoted by \( \mathbf{x} \), which are used to construct a set of input variables fed into the model: \( \mathbf{w} = T(\mathbf{x}) \), where \( T(\cdot) \) represents a \textit{dictionary of transformations} such as polynomials, interactions between variables, or the application of functions like exponentials, and so on. These inputs are then used to predict \( y \) through a model \( f(\mathbf{w}) \):
+\begin{align*}
+	y_i &= f(\mathbf{w}_i) + \mu_i,
+\end{align*}
+where \( \mu_i \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2) \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Cross-validation and Bayes factors}
+We predict \( y \) using \( \hat{f}(\mathbf{w}) \), a model trained on the data. The expected squared error (ESE) at a fixed input \( \mathbf{w}_i \) is given by:
+
+\begin{align*}
+	\text{ESE} &= \mathbb{E}_{\mathcal{D},y} \left[ (y_i - \hat{f}(\mathbf{w}_i))^2 \right] \\
+	&= \underbrace{\mathbb{E}_{\mathcal{D}} \left[ (f(\mathbf{w}_i) - \bar{f}(\mathbf{w}_i))^2 \right]}_{\text{Bias}^2} + \underbrace{\mathbb{E}_{\mathcal{D}} \left[ (\hat{f}(\mathbf{w}_i) - \bar{f}(\mathbf{w}_i))^2 \right]}_{\text{Variance}}\\
+    &+ \underbrace{\sigma^2}_{\text{Irreducible Error}}.
+\end{align*}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Cross-validation and Bayes factors}
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=1]
+		% Axes
+		\draw[->, thick, gray] (0,0) -- (6.2,0) node[right] {Complexity};
+		\draw[->, thick, gray] (0,0) -- (0,4.2) node[above] {Expected squared error};
+		
+		% Labels for under-fitting and over-fitting
+		\node at (1.2,3.6) {under-fitting};
+		\node at (5.1,3.6) {over-fitting};
+		
+		% Training risk curve
+		\draw[thick, dashed, domain=0.5:6, samples=100] plot(\x, {1.4/(0.5*\x + 1)});
+		\node[right] at (4.8,1.1) {Training squared error};
+		
+		% Test risk curve
+		\draw[thick, domain=0.5:6, samples=100] plot(\x, {0.3*(\x - 3.1)^2 + 0.6});
+		\node[right] at (5.1,2.4) {Test squared error};
+		
+		% Sweet spot annotation
+		\draw[->, thick] (1.9,0.6) -- (2.9,1.1);
+		\node[align=center] at (1.5,0.4) {sweet spot};
+		
+		% Vertical line at optimal capacity
+		\draw[dotted, thick] (3.1,0) -- (3.1,4);
+		
+	\end{tikzpicture}
+\caption{\textit{Bias-variance trade-off} in machine learning.}
+\label{fig:bias_var}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Cross-validation and Bayes factors}
+There are \( N \) possible partitions of the dataset \( \mathbf{y} = \{y_1, y_2, \dots, y_N\} \) following a leave-one-out strategy, i.e., \( \mathbf{y} = \{\mathbf{y}_{-k}, y_k\} \), for \( k = 1, \dots, N \), where \( \mathbf{y}_{-k} \) denotes the dataset excluding observation \( y_k \). Assuming that \( \mathbf{y} \) is exchangeable, meaning its joint distribution is invariant to reordering, and that \( N \) is large, then \( \mathbf{y}_{-k} \) and \( y_k \) are good proxies for \( \mathbf{y} \) and \( y_0 \), respectively. Consequently,
+\begin{align*}
+	\frac{1}{K} \sum_{k=1}^K L(y_k, a \mid M_j, \mathbf{y}_{-k}) 
+	\stackrel{p}{\rightarrow}\int_{\mathcal{Y}_0} L(y_0, a \mid M_j, \mathbf{y}) \, \pi(y_0 \mid \mathbf{y}) \, dy_0,
+\end{align*}
+by the law of large numbers, as \( N \to \infty \) and \( K \to \infty \).
+
+We select the model with the lowest value of
+\[
+\frac{1}{K} \sum_{k=1}^K \left( \mathbb{E}[y_k \mid M_j, \mathbf{y}_{-k}] - y_k \right)^2.
+\]
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Cross-validation and Bayes factors}
+Using the log-score function \cite{martin2022optimal}, we select model \( j \) if
+\begin{align*}
+	\int_{\mathcal{Y}_0} \log\frac{p(y_0 \mid M_j, \mathbf{y})}{p(y_0 \mid M_l, \mathbf{y})} \, \pi(y_0 \mid \mathbf{y}) \, dy_0 > 0.
+\end{align*}
+
+\begin{align*}
+	\frac{1}{K}\sum_{k=1}^K\log\frac{p(y_k \mid M_j, \mathbf{y}_{-k})}{p(y_k \mid M_l, \mathbf{y}_{-k})} 
+	\stackrel{p}{\rightarrow} \int_{\mathcal{Y}_0} \log\frac{p(y_0 \mid M_j, \mathbf{y})}{p(y_0 \mid M_l, \mathbf{y})} \, \pi(y_0 \mid \mathbf{y}) \, dy_0,
+\end{align*}
+by the law of large numbers as \( N \to \infty \) and \( K \to \infty \).
+
+This implies that we select model \( j \) over model \( l \) if
+\begin{align*}
+	\prod_{k=1}^K \left( \frac{p(y_k \mid M_j, \mathbf{y}_{-k})}{p(y_k \mid M_l, \mathbf{y}_{-k})} \right)^{1/K} 
+	= \prod_{k=1}^K \left( B_{jl}(y_k, \mathbf{y}_{-k}) \right)^{1/K} > 1.
+\end{align*}
+\end{frame}
+
+\section{Regularization}
+\begin{frame}
+	\frametitle{Regularization}
+The standard linear regression setting,
+\begin{align*}
+	\mathbf{y} &= \mathbf{i}_N \beta_0 + \mathbf{W}\boldsymbol{\beta} + \boldsymbol{\mu},
+\end{align*}
+where \(\mathbf{i}_N\) is an \(N\)-dimensional vector of ones, \(\mathbf{W}\) is the \(N \times K\) design matrix of inputs, and \(\boldsymbol{\mu} \sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I}_N)\).
+
+Consider the following penalized least squares criterion in the linear regression setting:
+\begin{align*}
+	\hat{\boldsymbol{\beta}}^{\text{Bridge}} = \arg\min_{\boldsymbol{\beta}} \left\{ \sum_{i=1}^N \left( y_i - \beta_0 - \sum_{k=1}^K \tilde{w}_{ik} \beta_k \right)^2 + \lambda \sum_{k=1}^K |\beta_k|^q \right\}\\ q \geq 0,
+\end{align*}
+where \(\tilde{w}_{ik}\) denotes the standardized inputs.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization}
+Interpreting \( |\beta_k|^q \) as proportional to the negative log-prior density of \( \beta_k \), the penalty shapes the contours of the prior distribution on the parameters. Specifically:
+\begin{itemize}
+	\item \( q = 0 \) corresponds to best subset selection, where the penalty counts the number of nonzero coefficients.
+	\item \( q = 1 \) yields the LASSO, which corresponds to a Laplace (double-exponential) prior.
+	\item \( q = 2 \) yields ridge regression, which corresponds to a Gaussian prior.  
+	 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization: LASSO}
+\begin{align*}
+	\mathbf{y} \mid \beta_0, \boldsymbol{\beta}, \sigma^2, \mathbf{W} &\sim {N}(\mathbf{i}_N \beta_0 + \mathbf{W} \boldsymbol{\beta}, \sigma^2 \mathbf{I}_N), \\
+	\boldsymbol{\beta} \mid \sigma^2, \tau_1^2, \dots, \tau_K^2 &\sim {N}(\mathbf{0}_K, \sigma^2 \mathbf{D}_{\tau}), \\
+	\tau_1^2, \dots, \tau_K^2 &\sim \prod_{k=1}^K \frac{\lambda^2}{2} \exp\left\{ -\frac{\lambda^2}{2} \tau_k^2 \right\}, \\
+	\sigma^2 &\sim \frac{1}{\sigma^2},\\
+	\beta_0&\sim c,
+\end{align*}
+where $\mathbf{D}_{\tau} = \operatorname{diag}(\tau_1^2, \dots, \tau_K^2)$ and $c$ is a constant.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization: LASSO}
+The conditional posterior distributions for the Gibbs sampler are \citep{Park2008}:
+\begin{align*}
+	\boldsymbol{\beta} \mid \sigma^2, \tau_1^2, \dots, \tau_K^2, \tilde{\mathbf{W}}, \tilde{\mathbf{y}} &\sim {N}(\boldsymbol{\beta}_n, \sigma^2 \mathbf{B}_n), \\
+	\sigma^2 \mid \boldsymbol{\beta}, \tau_1^2, \dots, \tau_K^2, \tilde{\mathbf{W}}, \tilde{\mathbf{y}} &\sim \text{Inverse-Gamma}(\alpha_n/2, \delta_n/2), \\
+	1/\tau_k^2 \mid \boldsymbol{\beta}, \sigma^2 &\sim \text{Inverse-Gaussian}(\mu_{kn}, \lambda_n),\\
+	\beta_0\mid \sigma^2, \tilde{\mathbf{W}}, \tilde{\mathbf{y}} &\sim N(\bar{y},\sigma^2/N) 
+\end{align*}
+where,
+\[\boldsymbol{\beta}_n = \mathbf{B}_n \tilde{\mathbf{W}}^{\top} \tilde{\mathbf{y}}, \quad	\mathbf{B}_n= \left( \tilde{\mathbf{W}}^{\top} \tilde{\mathbf{W}} + \mathbf{D}_{\tau}^{-1} \right)^{-1},\]
+\[\alpha_n = (N - 1) + K, \quad \delta_n = (\tilde{\mathbf{y}} - \tilde{\mathbf{W}} \boldsymbol{\beta})^{\top} (\tilde{\mathbf{y}} - \tilde{\mathbf{W}} \boldsymbol{\beta}) + \boldsymbol{\beta}^{\top} \mathbf{D}_{\tau}^{-1} \boldsymbol{\beta},\]
+\[\mu_{kn} = \sqrt{ \frac{ \lambda^2 \sigma^2 }{ \beta_k^2 } }, \quad \lambda_n = \lambda^2.\]
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Regularization: LASSO, simulation}
+We simulate the process \( y_i = \beta_0 + \sum_{k=1}^{10} \beta_k w_{ik}  + \mu_i \), where \( \beta_k \sim \mathcal{U}(-3, 3) \), \( \mu_i \sim \mathcal{N}(0, 1) \), and \( w_{ik} \sim \mathcal{N}(0, 1) \), $i=1,2,\dots,500$. Additionally, we generate 90 extra potential inputs from a standard normal distribution, which are included in the model specification. Our goal is to assess whether the Bayesian LASSO can successfully identify the truly relevant inputs.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization: SSVS}
+\begin{align*}
+	\mathbf{y} \mid \beta_0, \boldsymbol{\beta}, \sigma^2, \mathbf{W} &\sim {N}(\mathbf{i}_N \beta_0  + \mathbf{W} \boldsymbol{\beta}, \sigma^2 \mathbf{I}_N), \\
+	\boldsymbol{\beta} \mid \sigma^2, \boldsymbol{\gamma} &\sim {N}(\mathbf{0}_K, \sigma^2 \mathbf{D}_{\gamma} \mathbf{R} \mathbf{D}_{\gamma}), \\
+	\sigma^2 &\sim \text{Inverse-Gamma}\left(\frac{v}{2}, \frac{v\lambda_{\gamma}}{2}\right), \\
+	\gamma_k &\sim \text{Bernoulli}(p_k),
+\end{align*}
+where \(p_k\) is the prior inclusion probability of regressor \(w_k\), that is, \(P(\gamma_k = 1) = 1 - P(\gamma_k = 0) = p_k\), \(\mathbf{R}\) is a correlation matrix, and \(\mathbf{D}_{\gamma}\) is a diagonal matrix whose \(kk\)-th element is defined as
+\begin{align*}
+	(\mathbf{D}_{\gamma})_{kk} &= 
+	\begin{Bmatrix}
+		v_{0k}, & \text{if } \gamma_k = 0, \\
+		v_{1k}, & \text{if } \gamma_k = 1
+	\end{Bmatrix}.
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization: SSVS}
+The conditional posterior distributions for the Gibbs sampler are \citep{george1993variable}:
+\begin{align*}
+	\boldsymbol{\beta} \mid \sigma^2, \gamma_1, \dots, \gamma_K, \tilde{\mathbf{W}}, \tilde{\mathbf{y}} &\sim {N}(\boldsymbol{\beta}_n, \mathbf{B}_n), \\
+	\sigma^2 \mid \boldsymbol{\beta}, \gamma_1, \dots, \gamma_K, \tilde{\mathbf{W}}, \tilde{\mathbf{y}} &\sim \text{Inverse-Gamma}(\alpha_n/2, \delta_n/2), \\
+	\gamma_k \mid \boldsymbol{\beta}, \sigma^2 &\sim \text{Bernoulli}(p_{kn}),\\
+\end{align*}
+where:
+\[\boldsymbol{\beta}_n = \sigma^{-2} \mathbf{B}_n \tilde{\mathbf{W}}^{\top} \tilde{\mathbf{y}}, \quad
+	\mathbf{B}_n = \left(\sigma^{-2} \tilde{\mathbf{W}}^{\top} \tilde{\mathbf{W}} + \mathbf{D}_{\gamma}^{-1}\mathbf{R}^{-1}\mathbf{D}_{\gamma}^{-1} \right)^{-1},
+\]
+\[\alpha_n = N + v, \quad	\delta_n = (\tilde{\mathbf{y}} - \tilde{\mathbf{W}} \boldsymbol{\beta})^{\top} (\tilde{\mathbf{y}} - \tilde{\mathbf{W}} \boldsymbol{\beta}) + v\lambda_{\gamma},
+\]
+\[p_{kn} = \frac{\pi(\boldsymbol{\beta}\mid \boldsymbol{\gamma}_{-k},\gamma_k=1)\times p_k}{\pi(\boldsymbol{\beta}\mid \boldsymbol{\gamma}_{-k},\gamma_k=1)\times p_k+\pi(\boldsymbol{\beta}\mid \boldsymbol{\gamma}_{-k},\gamma_k=0)\times (1-p_k)}.
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regularization: SSVS, simulation}
+Let's use the simulation setting from the previous example to evaluate the performance of SSVS in uncovering the data-generating process. In particular, we use the \textit{BoomSpikeSlab} package to implement this example.
+\end{frame}
+
+\section{Bayesian additive regression trees}
+
+\begin{frame}
+	\frametitle{BART}
+A Classification and Regression Tree (CART) is a method used to predict outcomes based on inputs without assuming a parametric model. It is referred to as a classification tree when the outcome variable is qualitative, and as a regression tree when the outcome variable is quantitative. The method works by recursively partitioning the dataset into smaller, more homogeneous subsets using decision rules based on the input variables. For regression tasks, CART selects splits that minimize prediction error, typically measured by the sum of squared residuals. For classification problems, it aims to create the purest possible groups, using criteria such as Gini impurity or entropy.
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{BART}
+\begin{figure}[h!]
+	\centering
+\begin{tikzpicture}[
+	level distance=2cm,
+	sibling distance=3cm,
+	every node/.style={font=\small},
+	ellipseNode/.style={draw, ellipse, minimum width=1.2cm, minimum height=0.7cm},
+	rectNode/.style={draw, rectangle, minimum width=1.8cm, minimum height=0.9cm},
+	edge from parent/.style={draw, -{Latex[length=2mm]}, line width=0.6pt},
+	level 2/.style={sibling distance=3.2cm},
+	level 3/.style={sibling distance=2.4cm}
+	]
+	
+	% Root node
+	\node[ellipseNode] (root) {}
+	child { % Left subtree
+		node[ellipseNode] (a1) {}
+		child {
+			node[rectNode] {$\mu_1 = 2$}
+			edge from parent node[left] {$x_2 \in \{A\}$}
+		}
+		child {
+			node[ellipseNode] (a2) {}
+			child {
+				node[rectNode] {$\mu_2 = 3$}
+				edge from parent node[left] {$x_1 \leq 3$}
+			}
+			child {
+				node[rectNode] {$\mu_3 = 5$}
+				edge from parent node[right] {$x_1 > 3$}
+			}
+			edge from parent node[right] {$x_2 \in \{B,C\}$}
+		}
+		edge from parent node[left] {$x_1 \leq 5$}
+	}
+	child { % Right subtree
+		node[rectNode] {$\mu_4 = 8$}
+		edge from parent node[right] {$x_1 > 5$}
+	};
+	
+\end{tikzpicture}
+\caption{\textit{Decision tree}.}
+\label{fig:tree}
+\end{figure}	
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART}
+The starting point is the model
+\begin{align*}
+	y_i &= f(\mathbf{x}_i) + \mu_i,
+\end{align*}
+where \( \mu_i \sim N(0, \sigma^2) \).
+
+Thus, the conditional expectation \( \mathbb{E}[y_i \mid \mathbf{x}_i] = f(\mathbf{x}_i) \) is approximated as
+\begin{align*}
+	f(\mathbf{x}_i) \approx h(\mathbf{x}_i)= \sum_{j=1}^J g_j(\mathbf{x}_i \mid T_j, \boldsymbol{\theta}_j),
+\end{align*}
+that is, \( f(\mathbf{x}_i) \) is approximated by the sum of \( J \) regression trees. Each tree is defined by a structure \( T_j \) and a corresponding set of terminal node parameters \( \boldsymbol{\theta}_j \), where \( g_j(\mathbf{x}_i \mid T_j, \boldsymbol{\theta}_j) \) denotes the function that assigns the value \( \mu_{bj} \in \boldsymbol{\theta}_j \) to \( \mathbf{x}_i \) according to the partition defined by \( T_j \).
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART}
+\cite{chipman2010bart} use the following prior structure
+\begin{align*}
+	\pi(\left\{(T_j,\boldsymbol{\theta}_j),\sigma^2\right\})=\left[\prod_{j=1}^J\prod_{b=1}^B\pi(\mu_{bj}\mid T_j)\pi(T_j)\right]\pi(\sigma).
+\end{align*}  
+The prior for the binary tree structure has three components: (i) the probability that a node at depth \( d = 0, 1, \dots \) is nonterminal, given by \( \alpha(1 + d)^{-\beta} \), where \( \alpha \in (0,1) \) and \( \beta \in [0, \infty) \); the default values are \( \alpha = 0.95 \) and \( \beta = 2 \); (ii) a uniform prior over the set of available regressors to define the distribution of splitting variable assignments at each interior node; and (iii) a uniform prior over the discrete set of available splitting values to define the splitting rule assignment, conditional on the chosen splitting variable.
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART}
+The prior for the terminal node parameters, \( \pi(\mu_{bj} \mid T_j) \), is specified as \( N(0, 0.5 / (k \sqrt{J})) \). The observed values of \( y \) are scaled and shifted to lie within the range \( y_{\text{min}} = -0.5 \) to \( y_{\text{max}} = 0.5 \), and the default value \( k = 2 \) ensures that  
+\[
+P_{\pi(\mu_{bj} \mid T_j)}\left(\mathbb{E}[y \mid \mathbf{x}] \in (-0.5, 0.5)\right) = 0.95.
+\]
+The prior for \( \sigma^2 \) is specified as \( \pi(\sigma^2) \sim v\lambda / \chi^2_v \). \cite{chipman2010bart} recommend setting \( v = 3 \), and choosing \( \lambda \) such that \( P(\sigma < \hat{\sigma}) = q, q = 0.9 \), where \( \hat{\sigma} \) is an estimate of the residual standard deviation from a saturated linear model, i.e., a model including all available regressors when \( K < N \), or the standard deviation of \( y \) when \( K \geq N \). 
+
+Finally, regarding the number of trees \( J \), the default value is 200.
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART}
+We can use a Gibbs sampler that cycles through the \( J \) trees. At each iteration, we sample from the conditional posterior distribution
+\[
+\pi(T_j, \boldsymbol{\theta}_j \mid R_j, \sigma) = \pi(T_j \mid R_j, \sigma) \times \pi(\boldsymbol{\theta}_j \mid T_j, R_j, \sigma),
+\]
+where \( R_j = y - \sum_{k \neq j} g_k(\mathbf{x} \mid T_k, \boldsymbol{\theta}_k) \) represents the residuals excluding the contribution of the \( j \)-th tree.
+
+The posterior distribution \( \pi(T_j \mid R_j, \sigma) \) is explored using a Metropolis-Hastings algorithm, where the candidate tree is generated by one of the following moves: (i) growing a terminal node with probability 0.25; (ii) pruning a pair of terminal nodes with probability 0.25; (iii) changing a nonterminal splitting rule with probability 0.4; or (iv) swapping a rule between a parent and child node with probability 0.1 \citep{chipman1998bayesian}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART}
+The posterior distribution of \( \boldsymbol{\theta}_j \) is the product of the posterior distributions \( \pi(\mu_{jb} \mid T_j, R_j, \sigma) \), which are Gaussian. The posterior distribution of \( \sigma \) is inverse-gamma. The posterior draws of \( \mu_{bj} \) are then used to update the residuals \( R_{j+1} \), allowing the sampler to proceed to the next tree in the cycle. The number of iterations in the Gibbs sampler does not need to be very large; for instance, 200 burn-in iterations and 1,000 post-burn-in iterations typically work well.
+\end{frame}
+
+\begin{frame}
+	\frametitle{BART: Simulation}
+\begin{align*}
+	y_i = 10\sin(\pi x_{i1}x_{i2}) + 20(x_{i3}-0.5)^2 + 10 x_{i4} + 5 x_{i5} + \mu_i,
+\end{align*}
+where \( \mu_i \sim N(0,1) \), for \( i = 1, 2, \dots, 500 \).
+
+We set the hyperparameters to \( (\alpha, \beta, k, J, v, q) = (0.95, 2, 2, 200, 3, 0.9) \), with a burn-in of 100 iterations, a thinning parameter of 1, and 1,000 post-burn-in MCMC iterations. We analyze the trace plot of the posterior draws of \( \sigma \) to assess convergence, compare the true values of \( y \) with the posterior mean and 95\% predictive intervals for both the training and test sets (using 80\% of the data for training and 20\% for testing), and visualize the relative importance of the regressors across different values of \( J = 10, 20, 50, 100, 200 \).
+
+\end{frame}
+
+\section{Gaussian process}
+\begin{frame}
+	\frametitle{Gaussian process}
+A Gaussian Process (GP) is an infinite collection of random variables, any finite subset of which follows a joint Gaussian distribution. A GP is fully specified by its mean function and covariance function, that is,
+\begin{align*}
+	f(\mathbf{x}) &\sim GP(m(\mathbf{x}), k(\mathbf{x}, \mathbf{x}')),
+\end{align*}
+where \( m(\mathbf{x}) = \mathbb{E}[f(\mathbf{x})] \) and \( k(\mathbf{x}, \mathbf{x}') = \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))] \). 
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian process}
+The most commonly used covariance function in Gaussian Processes is the \textit{squared exponential} kernel (or \textit{radial basis function}) \cite{jacobi2024posterior}, defined as
+\begin{align*}
+	k(\mathbf{x}, \mathbf{x}') & = \sigma^2_f \exp\left(-\frac{1}{2l^2} \|\mathbf{x} - \mathbf{x}'\|^2\right),
+\end{align*}
+where \( \sigma^2_f \) is the signal variance, which controls the vertical variation (amplitude) of the function, \( l \) is the length-scale parameter, which determines how quickly the function varies with features distance, and \( \|\mathbf{x} - \mathbf{x}'\|^2 \) is the squared Euclidean distance between the feature vectors \( \mathbf{x} \) and \( \mathbf{x}' \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian process}
+For any finite set of feature points \( \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N \), the corresponding function values follow a multivariate Gaussian distribution:
+\begin{align*}
+	\mathbf{f} =
+	\begin{bmatrix}
+		f(\mathbf{x}_1) \\
+		f(\mathbf{x}_2) \\
+		\vdots \\
+		f(\mathbf{x}_N)
+	\end{bmatrix}
+	\sim N(\mathbf{0}, \mathbf{K}(\mathbf{X}, \mathbf{X})),
+\end{align*}
+where the \( (i,j) \)-th entry of the covariance matrix \( \mathbf{K}(\mathbf{X}, \mathbf{X}) \) is given by \( \mathbf{K}_{ij} = k(\mathbf{x}_i, \mathbf{x}_j) \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian process}
+In practice, we have an observed dataset \( \{(y_i, \mathbf{x}_i)\}_{i=1}^N \) such that
+\begin{align*}
+	y_i &= f(\mathbf{x}_i) + \mu_i,
+\end{align*}
+where \( \mu_i \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2) \). This means that $y_i$ is a noisy observation of $f(\mathbf{x}_i)$.
+
+Thus, the marginal distribution of the observed outputs is
+\[
+\mathbf{y} \sim \mathcal{N}(\mathbf{0}, \mathbf{K}(\mathbf{X}, \mathbf{X}) + \sigma^2 \mathbf{I}_N),
+\]
+where \( \mathbf{K}(\mathbf{X}, \mathbf{X}) \) is the covariance matrix generated by the GP kernel evaluated at the training inputs.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian process}
+To make predictions at a new set of features \( \mathbf{X}_* \), we consider the joint distribution:
+\begin{align*}
+	\begin{bmatrix}
+		\mathbf{y} \\
+		\mathbf{f}_*
+	\end{bmatrix}
+	\sim \mathcal{N}\left(
+	\mathbf{0},
+	\begin{bmatrix}
+		\mathbf{K}(\mathbf{X}, \mathbf{X}) + \sigma^2 \mathbf{I}_N & \mathbf{K}(\mathbf{X}, \mathbf{X}_*) \\
+		\mathbf{K}(\mathbf{X}_*, \mathbf{X}) & \mathbf{K}(\mathbf{X}_*, \mathbf{X}_*)
+	\end{bmatrix}
+	\right).
+\end{align*}
+
+Using the conditional distribution of a multivariate Gaussian, the \textit{posterior predictive distribution} \cite{rasmussen2006gaussian} is:
+\begin{align*}
+	\mathbf{f}_* \mid \mathbf{y} &\sim \mathcal{N}(\bar{\mathbf{f}}_*, \operatorname{cov}(\mathbf{f}_*)),
+\end{align*}
+where
+\begin{align*}
+	\bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{f}_* \mid \mathbf{y}, \mathbf{X}, \mathbf{X}_*] = \mathbf{K}(\mathbf{X}_*, \mathbf{X}) [\mathbf{K}(\mathbf{X}, \mathbf{X}) + \sigma^2 \mathbf{I}_N]^{-1} \mathbf{y}, \\
+	\operatorname{cov}(\mathbf{f}_*) &= \mathbf{K}(\mathbf{X}_*, \mathbf{X}_*) - \mathbf{K}(\mathbf{X}_*, \mathbf{X}) [\mathbf{K}(\mathbf{X}, \mathbf{X}) + \sigma^2 \mathbf{I}_N]^{-1} \mathbf{K}(\mathbf{X}, \mathbf{X}_*).
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian process: Simulation}
+We simulate the process
+\begin{align*}
+	f_i & = \sin(2\pi x_{i1}) + \cos(2\pi x_{i2}) + \sin(x_{i1} x_{i2}),
+\end{align*}
+where $x_{i1}$ and $x_{i2}$ are independently drawn from a uniform distribution on the interval $[0, 1]$, for $i = 1, 2, \dots, 100$.
+\end{frame}
+
+\section{Tall data problems}
+
+\begin{frame}
+	\frametitle{Tall data problems}
+Bayesian inference in such settings is computationally demanding because each iteration of an MCMC algorithm requires evaluating the likelihood function over all \( N \) observations. For large \( N \), this renders standard MCMC methods prohibitively expensive. Recent efforts have focused on developing scalable Monte Carlo algorithms that significantly reduce the computational cost compared to standard approaches.
+
+In scenarios where observations are assumed to be independent, two main frameworks have been proposed to scale MCMC algorithms: \textit{divide-and-conquer approaches} and \textit{subsampling-based algorithms}. Divide-and-conquer methods partition the dataset into disjoint subsets, run MCMC independently on each batch to obtain subposteriors, and then combine them to approximate the full posterior distribution. Subsampling-based algorithms, on the other hand, aim to reduce the number of data points used to evaluate the likelihood at each iteration, often relying on \textit{pseudo-marginal} MCMC methods \cite{andrieu2009pseudoefficient}.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Divide-and-conquer methods}
+The dataset is partitioned into \( B \) disjoint batches \( \mathbf{y}_1, \mathbf{y}_2, \dots, \mathbf{y}_B \), and the posterior is rewritten using the identity:
+\begin{align*}
+	\pi(\boldsymbol{\theta} \mid \mathbf{y}) &\propto \prod_{b=1}^B \pi(\boldsymbol{\theta})^{1/B} p(\mathbf{y}_b \mid \boldsymbol{\theta}).
+\end{align*}
+
+\textit{Consensus Monte Carlo} (CMC) operates by running separate Monte Carlo algorithms on each subset in parallel, and then averaging the resulting posterior draws. Specifically, given samples \( \boldsymbol{\theta}_b^{(s)} \), for  \( b = 1, 2, \dots, B \) and \( s = 1, 2, \dots, S \), obtained independently from each batch \( \mathbf{y}_b \), the \( s \)-th draw from the consensus posterior is computed as:
+\begin{align*}
+	\boldsymbol{\theta}^{(s)} = \left( \sum_{b=1}^B \mathbf{w}_b \right)^{-1} \sum_{b=1}^B \mathbf{w}_b \boldsymbol{\theta}_b^{(s)}, \mathbf{w}_b = \operatorname{Var}^{-1}(\boldsymbol{\theta} \mid \mathbf{y}_b).
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Tall data problems: Divide-and-conquer methods}
+\begin{algorithm}[H]
+	\caption{Consensus Monte Carlo algorithm}
+    \label{Alg:CMC}
+	\begin{algorithmic}[1]
+		\State Divide the dataset into \( B \) disjoint batches $\mathbf{y}_1, \mathbf{y}_2, \dots, \mathbf{y}_B$
+		\State Run $B$ separate MCMC algorithms to sample $\boldsymbol{\theta}_b^{(s)}\sim \pi(\boldsymbol{\theta}\mid \mathbf{y}_b)$, $b=1,2,\dots,B$, and $s=1,2,\dots,S$ using the prior distribution $\pi(\boldsymbol{\theta})^{1/B}$
+		\State Combine the posterior draws using $\boldsymbol{\theta}^{(s)}=\left(\sum_{b=1}^B\mathbf{w}_b\right)^{-1} \sum_{b=1}^B\mathbf{w}_b \boldsymbol{\theta}^{(s)}_b$ using \( \mathbf{w}_b = \operatorname{Var}^{-1}(\boldsymbol{\theta} \mid \mathbf{y}_b) \)    		 			 
+	\end{algorithmic} 
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+An alternative to divide-and-conquer methods is to avoid evaluating the likelihood over all observations, which requires \( O(N) \) operations. Instead, the likelihood is approximated using a smaller subset of observations, \( n \ll N \), in order to reduce the computational burden of the algorithm. The starting point is the log-likelihood function for \( N \) independent observations:
+\begin{align*}
+	\log p(\mathbf{y} \mid \boldsymbol{\theta}) &= \sum_{i=1}^N \log p(y_i \mid \boldsymbol{\theta}).
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+Introduce a set of auxiliary random variables \( \mathbf{z} \sim p(\mathbf{z}) \), such that the marginal likelihood can be written as an expectation with respect to \( \mathbf{z} \):
+\[
+\mathbb{E}_{\mathbf{z}}[p(\mathbf{y} \mid \boldsymbol{\theta}, \mathbf{z})] = \int_{\mathcal{Z}} p(\mathbf{y} \mid \boldsymbol{\theta}, \mathbf{z}) \, p(\mathbf{z}) \, d\mathbf{z} = p(\mathbf{y} \mid \boldsymbol{\theta}).
+\]
+This implies that
+\[
+\hat{p}(\mathbf{y} \mid \boldsymbol{\theta}) = \frac{1}{S} \sum_{s=1}^S p(\mathbf{y} \mid \boldsymbol{\theta}, \mathbf{z}^{(s)})
+\]
+is an unbiased estimator of the marginal likelihood, \( \mathbf{z}^{(s)} \sim p(\mathbf{z}) \).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+Let \( \ell_i(y_i \mid \boldsymbol{\theta}) = \log p(y_i \mid \boldsymbol{\theta}) \) denote the contribution of the \( i \)-th observation to the log-likelihood, and let \( z_1, \dots, z_N \) be latent binary variables such that \( z_i = 1 \) indicates that \( y_i \) is included in a subsample of size \( n \), selected without replacement. Then, an unbiased estimator of the log-likelihood is given by
+\begin{align*}
+	\hat{\ell}(\mathbf{y} \mid \boldsymbol{\theta}) & = \frac{N}{n} \sum_{i=1}^N \ell_i(y_i \mid \boldsymbol{\theta}) z_i.
+\end{align*}
+
+A bias correction is
+\begin{align*}
+	\hat{p}(\mathbf{y} \mid \boldsymbol{\theta}) & = \exp\left\{ \hat{\ell}(\mathbf{y} \mid \boldsymbol{\theta}) - \frac{1}{2} \sigma^2_{\hat{\ell}}(\boldsymbol{\theta}) \right\},
+\end{align*}
+where \( \sigma^2_{\hat{\ell}}(\boldsymbol{\theta}) \) denotes the variance of \( \hat{\ell}(\mathbf{y} \mid \boldsymbol{\theta}) \) \citep{ceperley1999penalty}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+\cite{quiroz2019speeding} propose a highly efficient, unbiased estimator of the log-likelihood based on \textit{control variates}, specifically through data-expanded and parameter-expanded control variates. 
+The key idea is to construct a function \( q_i(\boldsymbol{\theta}) \) that is highly correlated with the log-likelihood contribution \( \ell_i(y_i \mid \boldsymbol{\theta}) \), thereby stabilizing the log-likelihood estimator. In particular, \cite{quiroz2019speeding} introduce a \textit{difference estimator} of the form:
+\begin{align*}
+	\hat{\ell}_{\mathrm{DE}}(\mathbf{y} \mid \boldsymbol{\theta}, \mathbf{z}) = \sum_{i=1}^N q_i(\boldsymbol{\theta}) + \frac{N}{n} \sum_{i: z_i = 1} \left( \ell_i(y_i \mid \boldsymbol{\theta}) - q_i(\boldsymbol{\theta}) \right).
+\end{align*}
+This estimator \( \hat{\ell}_{\mathrm{DE}}(\mathbf{y} \mid \boldsymbol{\theta}, \mathbf{z}) \) is unbiased for the full log-likelihood \( \log p(\mathbf{y} \mid \boldsymbol{\theta}) \).
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+    Another approach is based on ideas from stochastic gradient descent \cite{robbins1951stochastic} and the Langevin diffusion-based stochastic differential equations.
+\begin{align*}
+	\pi(\boldsymbol{\theta} \mid \mathbf{y}) &\propto \pi(\boldsymbol{\theta}) \prod_{i=1}^{N} p(y_i \mid \boldsymbol{\theta}) \\
+	&= \exp\left\{ \sum_{i=1}^N \left[ \frac{1}{N} \log \pi(\boldsymbol{\theta}) + \log p(y_i \mid \boldsymbol{\theta}) \right] \right\} \\
+	&= \exp\left\{ -\sum_{i=1}^N U_i(\boldsymbol{\theta}) \right\} \\
+	&= \exp\left\{ -U(\boldsymbol{\theta}) \right\}.
+\end{align*} 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+The advantage of this formulation is that, under mild regularity conditions \cite{roberts1996exponential}, the Langevin diffusion process
+\begin{align*}
+	d\boldsymbol{\theta}(s) = -\frac{1}{2} \nabla U(\boldsymbol{\theta}(s))\,ds + d\mathbf{B}_s,
+\end{align*}
+has \( \pi(\boldsymbol{\theta} \mid \mathbf{y}) \) as its stationary distribution. 
+Using an Euler-Maruyama discretization of the Langevin diffusion gives a proposal draw from the posterior:
+\begin{align*}
+	\boldsymbol{\theta}^{(c)} = \boldsymbol{\theta}^{(s)} - \frac{\epsilon}{2} \nabla U(\boldsymbol{\theta}^{(s)}) + \boldsymbol{\psi},
+\end{align*}
+where \( \boldsymbol{\psi} \sim \mathcal{N}(\mathbf{0}, \epsilon \mathbf{I}_K) \) and \( \epsilon > 0 \) is a suitably chosen step size (learning rate).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+\cite{welling2011bayesian} proposed the \textit{Stochastic Gradient Langevin Dynamics} (SGLD), which replaces the full gradient with an unbiased estimate computed using a mini-batch of data. Given a random sample of size \( n \ll N \), the stochastic gradient estimate at iteration \( s \) is:
+\begin{align} \label{eq:grad}
+	\hat{\nabla} U(\boldsymbol{\theta})^{(n)} = \frac{N}{n} \sum_{i \in \mathcal{S}_n} \nabla U_i(\boldsymbol{\theta}),
+\end{align}
+where \( \mathcal{S}_n \subset \{1, 2, \dots, N\} \) is a randomly selected subset of dimension $n$ without replacement.
+
+Therefore, 
+\begin{align*}
+	\boldsymbol{\theta}^{(s+1)}&= \boldsymbol{\theta}^{(s)} -\frac{\epsilon_s}{2}\hat{\nabla} U(\boldsymbol{\theta}^{(s)})^{(n)}+\boldsymbol{\psi}_s,
+\end{align*}
+such that $\sum_{s=1}^{\infty}\epsilon_s=\infty$ and $\sum_{s=1}^{\infty}\epsilon_s^2<\infty$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+\begin{algorithm}[H]
+	\caption{Stochastic gradient Langevin dynamic algorithm}\label{Alg:SGLD}
+	\begin{algorithmic}[1]
+		\State Set $\bm{\theta}^{(0)}$ and the step size schedule $\epsilon_s$  		 			
+		\For{\texttt{$s=1,\dots,S$}}
+		\State Draw $\mathcal{S}_n$ of size $n$ from $i=\left\{1,2,\dots,N\right\}$ without replacement
+		\State Calculate $\hat{\nabla} U(\boldsymbol{\theta})^{(n)}$ using Equation \ref{eq:grad}  
+		\State Draw $\boldsymbol{\psi}_s\sim N(\mathbf{0},\epsilon_s\mathbf{I}_K)$
+		\State Update $\boldsymbol{\theta}^{(s+1)}\leftarrow \boldsymbol{\theta}^{(s)} -\frac{\epsilon_s}{2}\hat{\nabla} U(\boldsymbol{\theta}^{(s)})^{(n)}+\boldsymbol{\psi}_s$
+		\EndFor 
+	\end{algorithmic} 
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+The literature also employs \textit{control variates} to reduce the variance of the estimator. The core idea is to construct a simple function \( u_i(\boldsymbol{\theta}) \) that is highly correlated with \( \nabla U_i(\boldsymbol{\theta}) \) and has a known expectation. This correlation allows the fluctuations in \( u_i(\boldsymbol{\theta}) \) to ``cancel out'' some of the noise in \( \nabla U_i(\boldsymbol{\theta}) \), thereby stabilizing the stochastic gradient estimates. Specifically,
+\begin{align*}
+	\sum_{i=1}^N \nabla U_i(\boldsymbol{\theta}) &= \sum_{i=1}^N u_i(\boldsymbol{\theta}) + \sum_{i=1}^N \left( \nabla U_i(\boldsymbol{\theta}) - u_i(\boldsymbol{\theta}) \right),
+\end{align*}
+which leads to the following unbiased estimator:
+\begin{align*}
+	\sum_{i=1}^N u_i(\boldsymbol{\theta}) + \frac{N}{n} \sum_{i \in \mathcal{S}_n} \left( \nabla U_i(\boldsymbol{\theta}) - u_i(\boldsymbol{\theta}) \right).
+\end{align*}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+To construct effective control variates, one common strategy is to first approximate the posterior mode \( \hat{\boldsymbol{\theta}} \) using stochastic gradient descent (SGD), which serves as the initialization point for Algorithm~\ref{Alg:SGLD}. SGD proceeds via a stochastic approximation of the gradient:
+\[
+\boldsymbol{\theta}^{(s+1)} = \boldsymbol{\theta}^{(s)} - \epsilon_s \frac{1}{n} \sum_{i \in \mathcal{S}_n} \nabla U_i(\boldsymbol{\theta}^{(s)}).
+\]
+This approximation introduces stochasticity into the updates but significantly reduces computational cost.
+
+Two commonly used learning rate (or step size) schedules are \( \epsilon_s = s^{-\kappa} \) and \( \epsilon_s = \epsilon_0 / (1 + s / \tau)^{\kappa} \), where \( \epsilon_0 \) is the initial learning rate, \( \tau \) is a stability constant that slows down early decay (larger values lead to more stable early behavior), and \( \kappa \in (0.5, 1] \) controls the long-run decay rate.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Subsampling-based algorithms}
+After convergence, we obtain a reliable estimate of the posterior mode \( \hat{\boldsymbol{\theta}} \). Based on this, we define the control variate as \( u_i(\boldsymbol{\theta}) = \nabla U_i(\hat{\boldsymbol{\theta}}) \). The resulting control variate estimator of the gradient is:
+\[
+\hat{\nabla}_{\text{cv}} U(\boldsymbol{\theta}) = \sum_{i=1}^N \nabla U_i(\hat{\boldsymbol{\theta}}) + \frac{N}{n} \sum_{i \in \mathcal{S}_n} \left( \nabla U_i(\boldsymbol{\theta}) - \nabla U_i(\hat{\boldsymbol{\theta}}) \right).
+\]
+
+This expression is used in place of \( \hat{\nabla} U(\boldsymbol{\theta})^{(n)} \) from Equation~\ref{eq:grad} within Algorithm~\ref{Alg:SGLD}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Tall data problems: Simulation, CMC and SGLD}
+In this example, we follow the logistic regression simulation setup introduced by \cite{nemeth2021stochastic}:
+\begin{align*}
+	P(y_i = 1 \mid \boldsymbol{\beta}, \mathbf{x}_i) &= \frac{\exp\left\{\mathbf{x}_i^{\top} \boldsymbol{\beta}\right\}}{1 + \exp\left\{\mathbf{x}_i^{\top} \boldsymbol{\beta}\right\}},
+\end{align*}
+with log-likelihood function given by:
+\begin{align*}
+	\log p(\mathbf{y} \mid \boldsymbol{\beta}, \mathbf{x}) 
+	&= \sum_{i=1}^N y_i \mathbf{x}_i^{\top} \boldsymbol{\beta} - \log \left(1 + \exp\left\{\mathbf{x}_i^{\top} \boldsymbol{\beta}\right\} \right).
+\end{align*}
+We assume a prior distribution for \( \boldsymbol{\beta} \sim \mathcal{N}(\mathbf{0}, 10 \mathbf{I}_K) \).
+We set \( K = 10 \), \( \boldsymbol{\beta} = 0.5 \cdot \mathbf{i}_K \), and \( N = 10^5 \). The covariates \( \mathbf{x}_i \sim {N}(\mathbf{0}, \boldsymbol{\Sigma}) \), where the covariance matrix \( \boldsymbol{\Sigma}^{(i,j)} = U[-\rho, \rho]^{|i-j|} \) with \( \rho = 0.4 \), and \( \mathbf{i}_K \) denotes a \( K \)-dimensional vector of ones.
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}

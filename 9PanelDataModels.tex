@@ -1,0 +1,248 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Panel Data Models}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+We describe how to perform inference in longitudinal/panel models using a Bayesian framework. In this context, multiple cross-sectional units are observed repeatedly over time, a structure referred to as panel data by econometricians and longitudinal data by statisticians. Specifically, we present models for continuous (normal), binary (logit), and count (Poisson) responses. Applications and exercises illustrate the potential of these models.
+
+In longitudinal/panel data sets, we have $y_{it}$ where $i=1,2,\dots,N$ and $t=1,2,\dots,T_i$. If $T_i=T$ for all $i$, the dataset is \textit{balanced}; otherwise, it is \textit{unbalanced}. Panel data typically involves by far more cross-sectional units than time periods, this is called typically a \textit{short panel}. It assumes that cross-sectional units are independent, though serial correlation exists within each unit over time, and unobserved heterogeneity for each unit must be accounted for. We can treat this unobserved heterogeneity as random variables, assuming it is either independent or dependent on control variables. Econometricians refer to these cases as \textit{random effects} and \textit{fixed effects}, respectively. The Bayesian literature takes a different approach, modeling the panel structure hierarchically, where the unobserved heterogeneity may or may not depend on other controls.
+\end{frame}
+
+\section{Models}
+\begin{frame}
+	\frametitle{Normal model}
+The longitudinal (panel) normal model is specified as
+\[
+\bm{y}_i = \bm{X}_i \bm{\beta} + \bm{W}_i \bm{b}_i + \bm{\mu}_i,
+\]
+where $\bm{y}_i$ is a $T_i$-dimensional vector corresponding to unit $i = 1, 2, \dots, N$, and $\bm{X}_i$ and $\bm{W}_i$ are $T_i \times K_1$ and $T_i \times K_2$ design matrices, respectively. In the statistical literature, $\bm{\beta}$ denotes a $K_1$-dimensional vector of \textit{fixed effects}, whereas $\bm{b}_i$ is a $K_2$-dimensional vector of unit-specific \textit{random effects} that allow for unit-specific means and capture marginal dependence among observations within each cross-sectional unit.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Normal model}
+We assume normally distributed stochastic errors, $\bm{\mu}_i \sim N(\bm{0}, \sigma^2 \bm{I}_{T_i})$, implying that the likelihood function is
+{\scriptsize{
+\begin{align*}
+	p(\bm{\beta}, \bm{b}, \sigma^2 \mid \bm{y}, \bm{X}, \bm{W})
+	&\propto
+	\prod_{i=1}^N |\sigma^2 \bm{I}_{T_i}|^{-1/2}\\
+	&\times
+	\exp\!\left\{
+	-\frac{1}{2\sigma^2}
+	(\bm{y}_i - \bm{X}_i \bm{\beta} - \bm{W}_i \bm{b}_i)^{\top}
+	(\bm{y}_i - \bm{X}_i \bm{\beta} - \bm{W}_i \bm{b}_i)
+	\right\} \\[3pt]
+	&=
+	(\sigma^2)^{-\frac{1}{2}\sum_{i=1}^N T_i}\\
+	&\times
+	\exp\!\left\{
+	-\frac{1}{2\sigma^2}
+	\sum_{i=1}^N
+	(\bm{y}_i - \bm{X}_i \bm{\beta} - \bm{W}_i \bm{b}_i)^{\top}
+	(\bm{y}_i - \bm{X}_i \bm{\beta} - \bm{W}_i \bm{b}_i)
+	\right\},
+\end{align*}
+}}
+where $\bm{b} = [\bm{b}_1^{\top}, \bm{b}_2^{\top}, \dots, \bm{b}_N^{\top}]^{\top}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Normal model}
+Panel data modeling in the Bayesian approach assumes a hierarchical structure in the \textit{random effects}. Following \cite{Chib1999}, there is a first stage where $\bm{b}_i\sim{N}(\bm{0},\bm{D})$, $\bm{D}$ allows serial correlation within each cross-sectional unit $i$, and then, there is a second stage where $\bm{D}\sim{I}{W}(d_0,d_0\bm{D}_0)$. Thus, we can see that there is an additional layer of priors as there is a prior on the hyperparameter $\bm{D}$. 
+
+In addition, we have standard conjugate prior distributions for $\bm{\beta}$ and $\sigma^2$, $\bm{\beta} \sim {N}(\bm{\beta}_0,\bm{B}_0)$ and 
+$\sigma^2 \sim {I}{G}(\alpha_0, \delta_0)$. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Normal model}
+\cite{Chib1999} propose a blocking algorithm to perform inference in longitudinal hierarchical models by considering the distribution of $\bm{y}_i$ marginalized over the random effects. Given that $\bm{y}_i\mid  \bm{\beta},\bm{b}_i,\sigma^2,\bm{X}_i,\bm{W}_i\sim N(\bm{X}_i\bm{\beta}+\bm{W}_i\bm{b}_i,\sigma^2\bm{I}_{T_i})$, we can see that    $\bm{y}_i\mid \bm{\beta},\bm{D},\sigma^2,\bm{X}_i,\bm{W}_i\sim{N}(\bm{X}_i\bm{\beta},\bm{V}_i)$, where $\bm{V}_i=\sigma^2\bm{I}_{T_i}+\bm{W}_i\bm{D}\bm{W}_i^{\top}$ given that $\mathbb{E}[\bm{b}_i]=\bm{0}$ and $Var[\bm{b}_i]=\bm{D}$. If we have just random intercepts, then $\bm{W}_i=\bm{i}_{T_i}$, where $\bm{i}_{T_i}$ is a $T_i$-dimensional vector of ones. Thus, $\bm{V}_i=\sigma^2\bm{I}_{T_i}+\sigma_{b}^2\bm{i}_{T_i}\bm{i}_{T_i}^{\top}$, the variance is $\sigma^2+\sigma^2_{b}$ and the covariance is $\sigma^2_{b}$ within each cross-sectional unit through time.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Normal model}
+The posterior distributions are:
+\begin{equation*}
+	\bm{\beta}\mid \sigma^2,\bm{D},\bm{y}, \bm{X}, \bm{W} \sim {N}(\bm{\beta}_n,\bm{B}_n), 
+\end{equation*}
+where $\bm{B}_n = (\bm{B}_0^{-1} +\sum_{i=1}^N \bm{X}_i^{\top}\bm{V}_i^{-1}\bm{X}_i)^{-1}$, $\bm{\beta}_n= \bm{B}_n(\bm{B}_0^{-1}\bm{\beta}_0 + \sum_{i=1}^N\bm{X}_i^{\top}\bm{V}_i^{-1}\bm{y}_i)$.
+\begin{equation*}
+	\bm{b}_i\mid \bm{\beta},\sigma^2,\bm{D},\bm{y}, \bm{X}, \bm{W} \sim {N}(\bm{b}_{ni},\bm{B}_{ni}), 
+\end{equation*} 
+where $\bm{B}_{ni}=(\sigma^{-2}\bm{W}_i^{\top}\bm{W}_i+\bm{D}^{-1})^{-1}$ and $\bm{b}_{ni}=\bm{B}_{ni}(\sigma^{-2}\bm{W}_i^{\top}(\bm{y}_i-\bm{X}_i\bm{\beta}))$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Normal model}
+\begin{equation*}
+	\sigma^2\mid  \bm{\beta}, \bm{b}, \bm{y}, \bm{X}, \bm{W} \sim {I}{G}(\alpha_n, \delta_n),
+\end{equation*}
+where $\alpha_n=\alpha_0+\frac{1}{2}\sum_{i=1}^N T_i$ and $\delta_n=\delta_0+\frac{1}{2}\sum_{i=1}^N(\bm{y}_i-\bm{X}_i\bm{\beta}-\bm{W}_i\bm{b}_i)^{\top}(\bm{y}_i-\bm{X}_i\bm{\beta}-\bm{W}_i\bm{b}_i)$.
+
+\begin{equation*}
+	\bm{D}\mid  \bm{b} \sim {I}{W}(d_n, \bm{D}_n),
+\end{equation*}
+where $d_n=d_0+N$ and scale matrix $\bm{D}_n=d_0\bm{D}_0+\sum_{i=1}^N\bm{b}_i\bm{b}_i^{\top}$.
+
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Normal model: The relation between productivity and public investment}
+We used the dataset named \textit{8PublicCap.csv} used by \cite{Ramirez2017} to analyze the relation  between public investment and gross state product in the setting of a spatial panel dataset consisting of 48 US states from 1970 to 1986.
+In particular, we perform inference based on the following equation 
+\begin{align*}
+\log(\text{gsp}_{it})&=b_i+\beta_1+\beta_2\log(\text{pcap}_{it})+\beta_3\log(\text{pc}_{it})\\
+&+\beta_4\log(\text{emp}_{it})+\beta_5\text{unemp}_{it}+\mu_{it},
+\end{align*}
+
+where gsp in the gross state product, pcap is public capital, and pc is private capital all in USD, emp is employment (people), and unemp is the unemployment rate in percentage.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+Let $y_{it} \sim B(\pi_{it})$, where $\text{logit}(\pi_{it}) = \log\left(\frac{\pi_{it}}{1 - \pi_{it}}\right) \equiv y_{it}^*$, such that $y_{it}^* \sim N(\bm{x}_{it}^{\top} \bm{\beta} + \bm{w}_{it}^{\top} \bm{b}_i, \sigma^2)$. Thus, we can \textit{augment} the model with the latent variable $y_{it}^*$ and perform inference using a Metropolis-within-Gibbs sampling algorithm based on the posterior conditional distributions from the previous section.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+We can implement a Gibbs sampling algorithm to sample draws from the posterior conditional distributions of $\bm{\beta}$, $\sigma^2$, $\bm{b}_i$, and $\bm{D}$ using the equations in the previous section conditional on $\bm{y}_i^*$. Then, we can use a random walk Metropolis-Hastings algorithm to sample $y_{it}^*$, where the proposal distribution is Gaussian with mean $y_{it}^*$ and variance $v^2$, that is, $y_{it}^{*c} = y_{it}^* + \epsilon_{it}$, where $\epsilon_{it} \sim \mathcal{N}(0, v^2)$, and $v$ is a tuning parameter to achieve good acceptance rates. 
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+We can get samples of $y_{it}^*$ from a normal distribution with mean equal to $\bm{x}_{it}^{\top}\bm{\beta}+\bm{w}_{it}^{\top}\bm{b}_i$ and variance $\sigma^2$, and use these samples to get $\pi_{it}=\frac{1}{1+e^{-y_{it}^*}}$, $y_{it}^{*c}=y_{it}^{*}+\epsilon_{it}$ and $\pi_{it}^c=\frac{1}{1+e^{-y_{it}^{*c}}}$, and calculate the acceptance rate of the Metropolis-Hastings algorithm, 
+
+\begin{align*}
+	\alpha&=\min\left(1,\frac{ \pi_{it}^{cy_{it}}(1-\pi_{it}^c)^{(1-y_{it})}}{\pi_{it}^{y_{it}}(1-\pi_{it})^{(1-y_{it})}}\right.\\
+	&\times \left. \frac{\exp\left\{-\frac{1}{2\sigma^2}(y_{it}^{c*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)^{\top}(y_{it}^{c*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)\right\}}{\exp\left\{-\frac{1}{2\sigma^2}(y_{it}^{*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)^{\top}(y_{it}^{*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)\right\}}\right).
+\end{align*}
+
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model: Doctor visits in Germany}
+We used the dataset \textit{9VisitDoc.csv} provided by \cite{Winkelmann2004}. We analyze the determinants of a binary variable (\text{DocVis}), which equals 1 if an individual visited a physician in the last three months and 0 otherwise. The dataset contains 32,837 observations of 9,197 individuals in an \textit{unbalanced longitudinal/panel} dataset over the years 1995--1999 from the German Socioeconomic Panel Data.
+
+The specification is given by
+\begin{align*}
+	\text{logit}(\pi_{it}) &= \beta_1 + \beta_2 \text{Age} + \beta_3 \text{Male} + \beta_4 \text{Sport} + \beta_5 \text{LogInc} \\
+	&\quad + \beta_6 \text{GoodHealth} + \beta_7 \text{BadHealth} + b_i + b_{i1} \text{Sozh},
+\end{align*}
+where $\pi_{it} = p(\text{DocVis}_{it} = 1)$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Poisson model}
+We can use same ideas as in the first section to perform inference in longitudinal/panel datasets where the dependent variable takes non-negative integers. Let's assume that $y_{it}\sim P(\lambda_{it})$ where $\log(\lambda_{it})=y_{it}^*$ such that $y_{it}^*\sim N(\bm{x}_{it}^{\top}\bm{\beta}+\bm{w}_{it}^{\top}\bm{b}_i,\sigma^2)$. We can \textit{augment} the model with the latent variable $y_{it}^{*}$, and again use a Metropolis-within-Gibbs algorithm to perform inference in this model.
+\end{frame}
+
+\begin{frame}
+\frametitle{Poisson model}
+We can get samples of $y_{it}^*$ from a normal distribution with mean equal to $\bm{x}_{it}^{\top}\bm{\beta}+\bm{w}_{it}^{\top}\bm{b}_i$ and variance $\sigma^2$, and use these samples to get $\lambda_{it}=\exp(y_{it}^*)$, $y_{it}^{*c}=y_{it}^{*}+\epsilon_{it}$, where $\epsilon_{it}\sim\mathcal{N}(0,v^2)$, $v$ is a tuning parameter to get good acceptance rates, and $\lambda_{it}^c=\exp(y_{it}^{*c})$. The acceptance rate of the Metropolis-Hastings algorithm is 
+	\begin{align*}
+		\alpha&=\min\left(1,\frac{ \lambda_{it}^{cy_{it}}\exp(-\lambda_{it}^c)}{\lambda_{it}^{y_{it}}\exp(-\lambda_{it})}\right.\\
+		&\times \left. \frac{\exp\left\{-\frac{1}{2\sigma^2}(y_{it}^{c*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)^{\top}(y_{it}^{c*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)\right\}}{\exp\left\{-\frac{1}{2\sigma^2}(y_{it}^{*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)^{\top}(y_{it}^{*}-\bm{x}_{it}^{\top}\bm{\beta}-\bm{w}_{it}^{\top}\bm{b}_i)\right\}}\right).
+	\end{align*}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Poisson model: Simulation}
+Let's perform a simulation exercise to assess the performance of the hierarchical longitudinal Poisson model. The point of departure is to assume that 
+\[
+y_{it}^* = \beta_0 + \beta_1 x_{it1} + \beta_2 x_{it2} + \beta_3 x_{it3} + b_i + w_{it1} b_{i1},
+\]
+where $x_{itk} \sim N(0,1)$ for $k = 1, 2, 3$, $w_{it1} \sim N(0,1)$, $b_i \sim N(0, 0.7^{1/2})$, $b_{i1} \sim N(0, 0.6^{1/2})$, and $\bm{\beta} = [0.5 \ 0.4 \ 0.6 \ -0.6]^{\top}$, with $i = 1, 2, \dots, 50$. Additionally, $y_{it} \sim P(\lambda_{it})$, where $\lambda_{it} = \exp(y_{it}^*)$. The sample size is 1,000 in an \textit{unbalanced panel structure}.
+
+We set the priors as $\bm{\beta}_0 = \bm{0}_4$, $\bm{B}_0 = \bm{I}_4$, $\alpha_0 = \delta_0 = 0.001$, $d_0 = 2$, and $\bm{D}_0 = \bm{I}_2$. The number of MCMC iterations, burn-in, and thinning parameters are 15,000, 5,000, and 10, respectively.
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}

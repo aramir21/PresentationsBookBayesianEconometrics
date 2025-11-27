@@ -1,0 +1,387 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Bayesian Model Averaging}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+We outline in this chapter a framework for addressing model uncertainty and averaging across different models in a probabilistically consistent manner. The discussion tackles two major computational challenges in Bayesian model averaging: the vast space of possible models and the absence of analytical solutions for the marginal likelihood.
+\end{frame}
+
+\section{Foundation}
+\begin{frame}
+	\frametitle{Foundation}
+Bayesian model averaging (BMA) is an approach which takes into account model uncertainty. In particular, we consider uncertainty in the regressors (variable selection) in a regression framework where there are $K$ possible explanatory variables.
+Following \cite{Simmons2010}, the posterior model probability is
+\begin{equation*}
+	\pi(\mathcal{M}_j |\bm{y})=\frac{p(\bm{y} | \mathcal{M}_j)\pi(\mathcal{M}_j)}{\sum_{m=1}^{2^K}p(\bm{y} | \mathcal{M}_m)\pi(\mathcal{M}_m)},
+\end{equation*}
+where $\pi(\mathcal{M}_j)$ is the prior model probability,
+\begin{equation*}
+	p(\bm{y} | \mathcal{M}_j)=\int_{\bm{\Theta}_j} p(\bm{y}| \bm{\theta}_j,\mathcal{M}_j)\pi(\bm{\theta}_j | \mathcal{M}_j) d\bm{\theta}_{j}
+\end{equation*}
+is the marginal likelihood, and $\pi(\bm{\theta}_j | \mathcal{M}_j)$ is the prior distribution of $\bm{\theta}_j$ conditional on model $\mathcal{M}_j$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation}
+Following \cite{Raftery93}, the posterior distribution of $\bm{\theta}$ is 
+\begin{equation*}
+	\pi(\bm{\theta}|\bm{y})= \sum_{m=1}^{2^K}\pi(\bm{\theta}_m|\bm{y},\mathcal{M}_m). \pi(\mathcal{M}_m|\bm{y})
+\end{equation*}
+The posterior distribution of the parameter vector \(\bm{\theta}\) under model \(\mathcal{M}_m\) is denoted as \(\pi(\bm{\theta}_m|\bm{y}, \mathcal{M}_m)\). The posterior mean of \(\bm{\theta}\) is given by:
+\[
+\mathbb{E}[\bm{\theta}|\bm{y}] = \sum_{m=1}^{2^K} \hat{\bm{\theta}}_m \, \pi(\mathcal{M}_m|\bm{y}),
+\]
+
+where \(\hat{\bm{\theta}}_m\) represents the posterior mean under model \(\mathcal{M}_m\).
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation}
+The variance of the \(k\)-th element of \(\bm{\theta}\) given the data \(\bm{y}\) is:
+\begin{align*}
+ \text{Var}(\theta_{km}|\bm{y}) &= \sum_{m=1}^{2^K} \pi(\mathcal{M}_m|\bm{y}) \, \widehat{\text{Var}}(\theta_{km}|\bm{y}, \mathcal{M}_m) \\
+ &+ \sum_{m=1}^{2^K} \pi(\mathcal{M}_m|\bm{y}) \left( \hat{\theta}_{km} - \mathbb{E}[\theta_{km}|\bm{y}] \right)^2,   
+\end{align*}
+
+where \(\widehat{\text{Var}}(\theta_{km}|\bm{y}, \mathcal{M}_m)\) denotes the posterior variance of the \(k\)-th element of \(\bm{\theta}\) under model \(\mathcal{M}_m\).
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation}
+The posterior predictive distribution is
+\begin{equation*}
+	\pi(\bm{y}_0|\bm{y})= \sum_{m=1}^{2^K}p_m(\bm{y}_0|\bm{y},\mathcal{M}_m), \pi(M_m|\bm{y})
+\end{equation*}
+
+where $p_m(\bm{y}_0|\bm{y},\mathcal{M}_m)=\int_{\bm{\Theta}_m} p(\bm{y}_0|\bm{y},\bm{\theta}_m,\mathcal{M}_m)\pi(\bm{\theta}_m |\bm{y}, \mathcal{M}_m) d\bm{\theta}_{m}$ is the posterior predictive distribution under model $\mathcal{M}_m$. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation}
+The posterior inclusion probability associated with variable $\bm{x}_k$, $k=1,2,\dots,K$, which is
+
+\begin{equation*}
+	PIP(\bm{x}_k)=\sum_{m=1}^{2^K}\pi(\mathcal{M}_m|\bm{y})\times \mathbbm{1}_{k,m},
+\end{equation*}
+where
+$\mathbbm{1}_{k,m}= \left\{ \begin{array}{lcc}
+	1&   if  & \bm{x}_{k}\in \mathcal{M}_m \\
+	\\ 0 &  if & \bm{x}_{k}\not \in \mathcal{M}_m
+\end{array}
+\right\}.$\\
+
+\cite{Kass1995} suggest that posterior inclusion probabilities (PIP) less than 0.5 are evidence against the regressor, $0.5\leq PIP<0.75$ is weak evidence, $0.75\leq PIP<0.95$ is positive evidence, $0.95\leq PIP<0.99$ is strong evidence, and $PIP\geq 0.99$ is very strong evidence.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation}
+There are two main computational issues in implementing BMA based on variable selection:
+
+\begin{enumerate}
+    \item The number of models in the model space is $2^K$, which sometimes can be enormous.
+    \item Calculating the marginal likelihood $p(\bm{y} | \mathcal{M}_j)=\int_{\bm{\Theta}_j} p(\bm{y}| \bm{\theta}_j,\mathcal{M}_j)\pi(\bm{\theta}_j | \mathcal{M}_j) d\bm{\theta}_{j}$, which most of the time does not have an analytic solution. 
+\end{enumerate}. 
+\end{frame}
+\begin{frame}
+	\frametitle{Foundation: Models' space, Occam's window}
+Let $\mathcal{M}_0$ be a model with one regressor less than model $\mathcal{M}_1$, then:
+\begin{itemize}
+	\item If $\log(\pi(\mathcal{M}_0|\bm{y})/\pi(\mathcal{M}_1|\bm{y}))>\log(O_R)$, then $\mathcal{M}_1$ is rejected and $\mathcal{M}_0$ is considered.
+	\item If $\log(\pi(\mathcal{M}_0|\bm{y})/\pi(\mathcal{M}_1|\bm{y}))\leq -\log(O_L)$, then $\mathcal{M}_0$ is rejected, and $\mathcal{M}_1$ is considered.
+	 \item If $\log(O_L)<\log(\pi(\mathcal{M}_0|\bm{y})/\pi(\mathcal{M}_1|\bm{y}))\leq \log(O_R$), $\mathcal{M}_0$ and $\mathcal{M}_1$ are considered.
+\end{itemize} 
+Here $O_R$ is a number specifying the maximum ratio for excluding models in Occam's window, and $O_L=1/O_R^{2}$. 
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Foundation: Models' space, Occam's window}
+The search strategy can be ``up'', adding one regressor, or ``down'', dropping one regressor. Once the set of potentially acceptable models is defined, we discard all the models that are not in $\mathcal{M}'$, and the models that are in $\mathcal{M}''$:
+$\mathcal{M}'=\left\{\mathcal{M}_j:\frac{\max_m {\pi(\mathcal{M}_m|\bm{y})}}{\pi(\mathcal{M}_j|\bm{y})}\leq c\right\}$ and $\mathcal{M}''=\left\{\mathcal{M}_j:\exists \mathcal{M}_m\in\mathcal{M}',\mathcal{M}_m\subset \mathcal{M}_j,\frac{\pi(\mathcal{M}_m|\bm{y})}{\pi(\mathcal{M}_j|\bm{y})}>1\right\}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation: Models' space, MC3}
+We simulate a chain of $\mathcal{M}_s$ models, $s = 1, 2, ..., S<<2^K$, where the algorithm randomly extracts a candidate model $\mathcal{M}_c$ from a neighborhood of models ($nbd(\mathcal{M}_m)$) that consists of the actual model itself and the set of models with either one variable more or one variable less \citep{Raftery1997}. This candidate model is accepted with probability
+
+\begin{equation*}
+	\alpha (\mathcal{M}_{s-1},\mathcal{M}_{c})=\min \bigg \{ \frac{|nbd(\mathcal{M}_m)|p(\bm{y} | \mathcal{M}_c)\pi(\mathcal{M}_c)}{|nbd(\mathcal{M}^{c})|p(\bm{y}| \mathcal{M}_{(s-1)})\pi(\mathcal{M}_{(s-1)})},1 \bigg \}.
+\end{equation*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation: Marginal likelihood}
+Defining $h(\bm{\theta}|\mathcal{M}_j)=-\frac{\log(p(\bm{y}| \bm{\theta}_j,\mathcal{M}_j)\pi(\bm{\theta}_j | \mathcal{M}_j))}{N}$, then $p(\bm{y} | \mathcal{M}_j)=\int_{\bm{\Theta}_j} \exp\left\{-N h(\bm{\theta}|\mathcal{M}_j)\right\}  d\bm{\theta}_{j}$. If $N$ is sufficiently large (technically $N\to \infty$), we can make the following assumptions \citep{Hoeting1999}:
+
+\begin{itemize}
+	\item We can use the Laplace method for approximating integrals \citep{Tierney1986}.
+	\item The posterior mode is reached at the same point as the maximum likelihood estimator (MLE), denoted by $\hat{\bm{\theta}}_{MLE}$.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Foundation: Marginal likelihood}
+We get the following results under these assumptions:
+\begin{align*}
+	p(\bm{y} | \mathcal{M}_j)\approx&\left( \frac{2\pi}{N}\right)^{K_j/2}|\bm{\Sigma}|^{-1/2} \exp\left\{-N h(\bm{\hat{\theta}}_j^{MLE}|\mathcal{M}_j)\right\}, \ N\rightarrow\infty,
+\end{align*}
+where $\bm{\Sigma}$ is the inverse of the Hessian matrix of $h(\bm{\hat{\theta}}_j^{MLE}|\mathcal{M}_j)$, and $K_j=dim\left\{\bm{\theta}_j\right\}$.
+Then,
+\begin{align*}
+	log\left(p(\bm{y} | \mathcal{M}_j)\right)\approx& -\frac{K_j}{2}\log(N)+\log(p(\bm{y}| \bm{\hat{\theta}}_j^{MLE},\mathcal{M}_j))\\
+    &= -\frac{BIC}{2}, \ N \rightarrow \infty.
+\end{align*}
+
+\end{frame}
+\section{Models}
+\begin{frame}
+	\frametitle{Gaussian models}
+$$\bm{y}=\alpha\bm{i}_N+\bm{X}_m\bm{\beta}_m+\bm{\mu}_m,$$
+
+$\bm{\mu}_m\sim{N}(\bm{0},\sigma^2\bm{I}_n)$, $\bm{i}_N$ is a $N$-dimensional column of ones, $\bm{X}_m$ is the design matrix without the column of ones, and $N$ is the sample size. 
+
+The conjugate prior for the location parameters is $\bm{\beta}_m|\sigma^2 \sim {N}(\bm{\beta}_{m0}, \sigma^2 \bm{B}_{m0})$, and the priors for $\sigma^2$ and $\alpha$ can be improper, as these parameters are common to all models $\mathcal{M}_m$. Particularly, $\pi(\sigma^2)\propto 1/\sigma^2$ (Jeffreys' prior for the linear Gaussian model, and $\pi(\alpha)\propto 1$. The Zellners' prior, $\bm{\beta}_{m0}=\bm{0}_m$ and $\bm{B}_{m0}=(g_m\bm{X}_m^{\top}\bm{X}_m)^{-1}$, where
+\begin{align*}
+	g_m & =
+	\begin{Bmatrix}
+		1/K^2, & N \leq K^2\\
+		1/N, & N>K^2 
+	\end{Bmatrix}.
+\end{align*}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian models}
+The marginal likelihood associated with model $\mathcal{M}_m$ is proportional to
+\begin{align*}
+	p(\bm{y}|\mathcal{M}_m)&\propto \left(\frac{g_m}{1+g_m}\right)^{k_m/2}\\
+    &\times\left[(\bm{y}-\bar{y}\bm{i}_N)^{\top}(\bm{y}-\bar{y}\bm{i}_N)-\frac{1}{1+g_m}(\bm{y}^{\top}\bm{P}_{X_m}\bm{y})\right]^{-(N-1)/2},
+\end{align*}
+where all parameters are indexed to model $\mathcal{M}_m$, $\bm{P}_{X_m}=\bm{X}_m(\bm{X}_m^{\top}\bm{X}_m)^{-1}\bm{X}_m$ is the projection matrix on the space generated by the columns of $\bm{X}_m$, and $\bar{y}$ is the sample mean of $\bm{y}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian models: Simulation exercise}
+We set 10 regressors such that $x_k\sim N(1, 1)$, $k =1,\dots,6$, and $x_k\sim B(0.5)$, $k=7,\dots,10$. We set $\bm{\beta}=[1 \ 0 \ 0 \ 0 \ 0.5 \ 0, 0, 0, 0, -0.7]^{\top}$ such that just $x_1$, $x_5$ and $x_{10}$ are relevant to drive $y_i=1+\bm{x}^{\top}\bm{\beta}+\mu_i$, $\mu_i\sim N(0,0.5^2)$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian models: IVBMA}
+Assuming $\bm{\gamma}\sim {N}(\bm{0},\bm{I})$, $\bm{\beta}\sim {N}(\bm{0},\bm{I})$, and $\bm{\Sigma}^{-1} \sim {W}(3,\bm{I})$ \citep{Karl2012}.
+
+Given the candidate ($M_{c}^{2nd}$) and actual ($M_{s-1}^{2nd}$) models for the iteration $s$ in the second stage, the conditional Bayes factor is 
+\begin{equation*}
+	CBF^{2nd}=\frac{p(\bm{y}|M_{c}^{2nd},\bm{\gamma},\bm{\Sigma})}{p(\bm{y}|M_{s-1}^{2nd},\bm{\gamma},\bm{\Sigma})},
+\end{equation*}
+where 
+\begin{align*}
+	p(\bm{y}|M_{c}^{2nd},\bm{\gamma},\bm{\Sigma})&=\int_{\mathcal{M}^{2nd}}p(\bm{y}|\bm{\beta},\bm{\gamma},\bm{\Sigma})\pi(\bm{\beta}|M_{c}^{2nd})d\bm{\beta}\\
+	&\propto |\bm{B}_n|^{-1/2} \exp\left\{\frac{1}{2}{\bm{\beta}_n}^{\top}\bm{B}_n^{-1}\bm{\beta}_n\right\}
+	.
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian models: IVBMA}
+In the first stage,
+\begin{equation*}
+	CBF^{1st}=\frac{p(\bm{y}|M_{c}^{1st},\bm{\beta},\bm{\Sigma})}{p(\bm{y}|M_{s-1}^{1st},\bm{\beta},\bm{\Sigma})},
+\end{equation*}
+where \begin{align*}
+	p(\bm{y}|M_{c}^{1st},\bm{\beta},\bm{\Sigma})&=\int_{\mathcal{M}^{1st}}p(\bm{y}|\bm{\gamma},\bm{\beta},\bm{\Sigma})\pi(\bm{\gamma}|M_{c}^{1st})d\bm{\gamma}\\
+	&\propto |\bm{G}_n|^{-1/2} \exp\left\{\frac{1}{2}{\bm{\gamma}_n}^{\top}\bm{G}_n^{-1}\bm{\gamma}_n\right\}.
+\end{align*}
+These conditional Bayes factors assume $\pi(M^{1st},M^{2sd})\propto 1$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaussian models: IVBMA, simulation exercise}
+Let's assume that $y_i = 2 + 0.5x_{i1} - x_{i2} + x_{i3} + \mu_i$, where $x_{i1} = 4z_{i1} - z_{i2} + 2z_{i3} + \epsilon_{i1}$ and $x_{i2} = -2z_{i1} + 3z_{i2} - z_{i3} + \epsilon_{i2}$, such that $[\epsilon_{i1} \ \epsilon_{i2} \ \mu_i]^{\top} \sim N(\bm{0}, \bm{\Sigma})$, where $\bm{\Sigma} = \begin{bmatrix} 1 & 0 & 0.8 \\ 0 & 1 & 0.5 \\ 0.8 & 0.5 & 1 \end{bmatrix}$, for $i = 1, 2, \dots, 1000$. The endogeneity arises due to the correlation between $\mu_i$ and $x_{i1}$ and $x_{i2}$ through the stochastic errors. In addition, there are three instruments, $z_{il} \sim U(0,1)$, for $l = 1, 2, 3$, and another 18 regressors believed to influence $y_i$, which are distributed according to a standard normal distribution.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Generalized linear models}
+Generalized linear models (GLMs) were introduced by \cite{nelder1972generalized}, extending the concept of linear regression to a more general setting. These models are characterized by:
+\begin{enumerate}
+    \item a dependent variable $y_i$ whose probability distribution function belongs to the exponential family,
+    \item a linear predictor $\eta = \bm{x}^{\top}\bm{\beta}$, and
+    \item a link function such that $\mathbb{E}[y|\bm{x}] = g^{-1}(\bm{x}^{\top}\bm{\beta})$, which implies that $g(\mathbb{E}[y|\bm{x}]) = \bm{x}^{\top}\bm{\beta}$. 
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Generalized linear models}
+We can use the GLM framework to perform Bayesian model averaging (BMA) using the BIC approximation, following \cite{Raftery1995}. Specifically, the BIC is given by $BIC = k_m \log(N) - 2 \log(p(\hat{\bm{\theta}}_m | \bm{y}))$, where $\hat{\bm{\theta}}_m$ is the maximum likelihood estimator. Thus, we simply need to calculate the likelihood function at the maximum likelihood estimator.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Generalized linear models: Simulation exercise, Poisson}
+$x_k\sim N(0, 1)$, $k =1,\dots,27$, and $\mathbb{E}[y_i|\bm{x}_i]=\lambda_i=\exp(0.5+1.1x_{i1}+0.7x_{i2})$.
+\end{frame}
+
+\section{Calculating the marginal likelihood}
+
+\begin{frame}
+	\frametitle{Marginal likelihood: Savage-Dickey density ratio}
+Given the parameter space $\bm{\theta}=(\bm{\omega}^{\top}, \bm{\psi}^{\top})^{\top}\in \bm{\Theta}=\bm{\Omega}\times \bm{\Psi}$, where we wish to test the null hypothesis $H_0:\bm{\omega}=\bm{\omega}_0$ (model $\mathcal{M}_1$) versus $H_1:\bm{\omega}\neq \bm{\omega}_0$ (model $\mathcal{M}_2$), if $\pi(\bm{\psi}|\bm{\omega}_0,\mathcal{M}_2)=\pi(\bm{\psi}|\mathcal{M}_1)$, then the Bayes factor comparing $\mathcal{M}_1$ versus $\mathcal{M}_2$ is
+
+\begin{equation}\label{eq:SD}
+	BF_{12}=\frac{\pi(\bm{\omega}=\bm{\omega}_0|\bm{y},\mathcal{M}_2)}{\pi(\bm{\omega}=\bm{\omega}_0|\mathcal{M}_2)},
+\end{equation}
+where $\pi(\bm{\omega}=\bm{\omega}_0|\bm{y},\mathcal{M}_2)$ and $\pi(\bm{\omega}=\bm{\omega}_0|\mathcal{M}_2)$ are the posterior and prior densities of $\bm{\omega}$ under $\mathcal{M}_2$ evaluated at $\bm{\omega}_0$ (see \cite{verdinelli1995computing}). 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal likelihood: Chib's method}
+The point of departure in \cite{chib1995marginal} is the identity
+\begin{align*}	\pi(\bm{\theta}^*|\bm{y},\mathcal{M}_m)=\frac{p(\bm{y}|\bm{\theta}^*,\mathcal{M}_m)\times\pi(\bm{\theta}^*|\mathcal{M}_m)}{p(\bm{y}|\mathcal{M}_m)},
+\end{align*} 
+where $\bm{\theta}^*$ is a particular value of $\bm{\theta}$ of high probability, for instance, the mode. This implies that
+\begin{align*}
+p(\bm{y}|\mathcal{M}_m)=\frac{p(\bm{y}|\bm{\theta}^*,\mathcal{M}_m)\times\pi(\bm{\theta}^*|\mathcal{M}_m)}{\pi(\bm{\theta}^*|\bm{y},\mathcal{M}_m)}.
+\end{align*} 
+ 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal likelihood: Chib's method}
+Assume that $\bm{\theta}=[\bm{\theta}^{\top}_1 \ \bm{\theta}^{\top}_2]^{\top}$, then $\pi(\bm{\theta}^*|\bm{y},\mathcal{M}_m)=\pi(\bm{\theta}^*_1|\bm{\theta}^*_2,\bm{y},\mathcal{M}_m)\times \pi(\bm{\theta}^*_2|\bm{y},\mathcal{M}_m)$. We have the first term because in the Gibbs sampling algorithm the posterior conditional distributions are available. The second is
+
+\begin{align*}
+	\pi(\bm{\theta}^*_2|\bm{y},\mathcal{M}_m)&=\int_{\bm{\Theta}_1}\pi(\bm{\theta}_1,\bm{\theta}^*_2|\bm{y},\mathcal{M}_m)d\bm{\theta}_1\\
+	&=\int_{\bm{\Theta}_1}\pi(\bm{\theta}^*_2|\bm{\theta}_1,\bm{y},\mathcal{M}_m)\pi(\bm{\theta}_1|\bm{y},\mathcal{M}_m)d\bm{\theta}_1\\
+	&\approx \frac{1}{S}\sum_{s=1}^S \pi(\bm{\theta}^*_2|\bm{\theta}^{(s)}_1,\bm{y},\mathcal{M}_m),
+\end{align*} 
+
+where $\bm{\theta}^{(s)}_1$ are the posterior draws of $\bm{\theta}_1$ from the Gibbs sampling algorithm. 
+ 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal likelihood: Gelfand-Dey method}
+Given a probability density function $q(\bm{\theta})$, whose support is in $\bm{\Theta}$, then
+\begin{align*}
+	\mathbb{E}\left[\frac{q(\bm{\theta})}{\pi(\bm{\theta}|\mathcal{M}_m)p(\bm{y}|\bm{\theta}_m,\mathcal{M}_m)}\biggr\rvert \bm{y},\mathcal{M}_m\right]&=\frac{1}{p(\bm{y}|\mathcal{M}_m)},
+\end{align*} 
+
+where the expected value is with respect to the posterior distribution given the model $\mathcal{M}_m$.
+
+\cite{geweke1999using} recommends to use $q(\bm{\theta})$ equal to a truncated multivariate normal density function with mean and variance equal to the posterior mean ($\hat{\bm{\theta}}$) and variance ($\hat{\bm{\Sigma}}$) of $\bm{\theta}$. The truncation region is $\hat{\bm{\Theta}}=\left\{\bm{\theta}:(\bm{\theta}-\hat{\bm{\theta}})^{\top}\hat{\bm{\Sigma}}^{-1}(\bm{\theta}-\hat{\bm{\theta}})\leq \chi_{1-\alpha}^2(K)\right\}$, where $\chi_{1-\alpha}^2(K)$ is the $(1-\alpha)$ percentile of the Chi-squared distribution with $K$ degrees of freedom, $K$ is the dimension of $\bm{\theta}$. We can pick small values of $\alpha$, for instance, $\alpha=0.01$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal likelihood: Gelfand-Dey method}
+Observe that
+\begin{align*}
+	\mathbb{E}\left[\frac{q(\bm{\theta})}{\pi(\bm{\theta}|\mathcal{M}_m)p(\bm{y}|\bm{\theta}_m,\mathcal{M}_m)}\biggr\rvert \bm{y},\mathcal{M}_m\right]
+\end{align*} can be approximated by 
+\begin{align*}
+	\frac{1}{S}\sum_{s=1}^S \left[\frac{q(\bm{\theta}^{(s)})}{\pi(\bm{\theta}^{(s)}|\mathcal{M}_m)p(\bm{y}|\bm{\theta}^{(s)}_m,\mathcal{M}_m)}\right],
+\end{align*}
+where $\bm{\theta}^{(s)}_m$ are draws from the posterior distribution. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal likelihood:  Simulation}
+Assume that the data generating process is given by  
+\[
+y_{i} = 0.7 + 0.3x_{i1} + 0.7x_{i2} - 0.2x_{i3} + 0.2x_{i4} + \mu_i,
+\]
+where \(x_{i1} \sim B(0.3)\), \(x_{ik} \sim N(0,1)\), for \(k = 2, \dots, 4\), and \(\mu_i \sim N(0, 1)\), for \(i = 1, 2, \dots, 500\). Let us set \(H_0: \beta_5 = 0\) (model \(\mathcal{M}_1\)) versus \(H_1: \beta_5 \neq 0\) (model \(\mathcal{M}_2\)), that is, $x_{i4}$ is not relevant under $H_0$.
+
+We assume that \(\bm{\beta}_{m0} = \bm{0}_{m0}\), \(\bm{B}_{m0} = 0.5 \bm{I}_{m}\), \(\alpha_0 = \delta_0 = 4\). The dimensions of \(\bm{0}_{m0}\) and \(\bm{I}_m\) are 4 for model \(\mathcal{M}_1\) and 5 for model \(\mathcal{M}_2\). In addition, we assume equal prior probabilities for both models.
+ 
+\end{frame}
+
+
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}

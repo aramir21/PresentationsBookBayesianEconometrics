@@ -1,0 +1,303 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Univariate Models}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+We describe how to perform Bayesian inference in several of the most common univariate models, including the normal, logit, ordered probit, tobit, quantile regression, and Bayesian bootstrap. Our point of departure is a random sample of cross-sectional units. We then present the posterior distributions of the parameters and illustrate their use through selected applications.
+\end{frame}
+
+\section{Models}
+\begin{frame}
+	\frametitle{Linear regression}
+The Gaussian linear model is specified as ${\bm{y}} = {\bm{X}}\bm{\beta} + \bm{\mu}$, where $\bm{\mu} \sim N(\bm{0}, \sigma^2 \bm{I}_N)$ is a stochastic error term, ${\bm{X}}$ is an $N \times K$ matrix of regressors, $\bm{\beta}$ is a $K$-dimensional vector of location parameters, $\sigma^2$ is the variance of the model (scale parameter), ${\bm{y}}$ is an $N$-dimensional vector of the dependent variable, and $N$ is the sample size.
+
+We assume independent priors, that is, $\pi(\bm{\beta}, \sigma^2) = \pi(\bm{\beta}) \times \pi(\sigma^2)$, where $\bm{\beta} \sim N(\bm{\beta}_0, {\bm{B}}_0)$ and $\sigma^2 \sim IG(\alpha_0/2, \delta_0/2)$, with $\alpha_0/2$ and $\delta_0/2$ denoting the shape and rate parameters, respectively.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Linear regression}
+The likelihood function of this model is given by
+\begin{align*}
+	p({\bm{y}} \mid \bm{\beta}, \sigma^2, {\bm{X}}) 
+	= (2\pi\sigma^2)^{-\frac{N}{2}} 
+	\exp\left\{ -\frac{1}{2\sigma^2} ({\bm{y}} - {\bm{X}}\bm{\beta})^{\top} ({\bm{y}} - {\bm{X}}\bm{\beta}) \right\}.
+\end{align*}
+
+The conditional posterior distributions are
+\begin{align*}
+	\bm{\beta} \mid \sigma^2, {\bm{y}}, {\bm{X}} &\sim N(\bm{\beta}_n, {\bm{B}}_n), \\
+	\sigma^2 \mid \bm{\beta}, {\bm{y}}, {\bm{X}} &\sim IG(\alpha_n/2, \delta_n/2),
+\end{align*}
+where 
+${\bm{B}}_n = ({\bm{B}}_0^{-1} + \sigma^{-2} {\bm{X}}^{\top}{\bm{X}})^{-1}$, 
+$\bm{\beta}_n = {\bm{B}}_n ({\bm{B}}_0^{-1}\bm{\beta}_0 + \sigma^{-2} {\bm{X}}^{\top}{\bm{y}})$, 
+$\alpha_n = \alpha_0 + N$, and 
+$\delta_n = \delta_0 + ({\bm{y}} - {\bm{X}}\bm{\beta})^{\top}({\bm{y}} - {\bm{X}}\bm{\beta})$.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Linear regression: The market value of soccer players in Europe}
+The model specification is as follows:
+\begin{align*}
+	\log(\text{Value}_i) &= {\beta}_1 + {\beta}_2 \text{Perf}_i + {\beta}_3 \text{Age}_i + {\beta}_4 \text{Age}_i^2 + {\beta}_5 \text{NatTeam}_i \\
+	&\quad + {\beta}_6 \text{Goals}_i + {\beta}_7 \text{Exp}_i + {\beta}_8 \text{Exp}_i^2 + \mu_i,
+\end{align*}
+
+where \textit{Value} is the market value in euros (2017), \textit{Perf} is a measure of player performance, \textit{Age} is the player's age in years, \textit{NatTeam} is an indicator variable that equals 1 if the player has been a member of the national team, \textit{Goals} is the total number of goals scored during the player's career, and \textit{Exp} represents playing experience in years.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+In the logit model, the dependent variable is binary, $y_i \in \{0,1\}$, and follows a Bernoulli distribution, $y_i \stackrel{ind}{\sim} B(\pi_i)$, where $p(y_i = 1) = \pi_i$ and 
+\[
+\pi_i = \frac{\exp({\bm{x}}_i^{\top}\bm{\beta})}{1 + \exp({\bm{x}}_i^{\top}\bm{\beta})}.
+\]
+Here, $\bm{x}_i$ is a $K$-dimensional vector of regressors.
+
+The likelihood function of the logit model is given by
+\begin{align*}
+	p({\bm{y}} \mid \bm{\beta}, {\bm{X}}) 
+	&= \prod_{i=1}^N \pi_i^{y_i} (1 - \pi_i)^{1 - y_i} \\
+	&= \prod_{i=1}^N 
+	\left(\frac{\exp({\bm{x}}_i^{\top}\bm{\beta})}{1 + \exp({\bm{x}}_i^{\top}\bm{\beta})}\right)^{y_i}
+	\left(\frac{1}{1 + \exp({\bm{x}}_i^{\top}\bm{\beta})}\right)^{1 - y_i}.
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+We specify a normal prior distribution for the coefficients, $\bm{\beta} \sim N({\bm{\beta}}_0, {\bm{B}}_0)$. The posterior distribution is therefore
+\begin{align*}
+	\pi(\bm{\beta} \mid {\bm{y}}, {\bm{X}}) &\propto 
+	\prod_{i=1}^N 
+	\left(\frac{\exp({\bm{x}}_i^{\top}\bm{\beta})}{1 + \exp({\bm{x}}_i^{\top}\bm{\beta})}\right)^{y_i}
+	\left(\frac{1}{1 + \exp({\bm{x}}_i^{\top}\bm{\beta})}\right)^{1 - y_i} \\
+	&\quad \times 
+	\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\beta}_0)^{\top} 
+	{\bm{B}}_0^{-1} (\bm{\beta} - \bm{\beta}_0) \right\}.
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model}
+Since the logit model does not yield a standard posterior distribution, a random-walk Metropolis–Hastings algorithm can be employed to obtain draws from the posterior. A suitable proposal distribution is a multivariate normal centered at the current draw, with covariance matrix 
+$\tau^2({\bm{B}}_0^{-1} + \widehat{{\bm{\Sigma}}}^{-1})^{-1}$, 
+where $\tau > 0$ is a tuning parameter and $\widehat{\bm{\Sigma}}$ is the sample covariance matrix obtained from the maximum likelihood estimates \citep{Martin2011}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Logit model: Simulation}
+Let's conduct a simulation exercise to evaluate the performance of the algorithm. Set $\bm{\beta} = \begin{bmatrix} 0.5 & 0.8 & -1.2 \end{bmatrix}^{\top}$, with $x_{ik} \sim N(0,1)$ for $k = 2, 3$ and $i = 1, 2, \dots, 10{,}000$.
+
+We specify the hyperparameters as $\bm{\beta}_0 = [0 \ 0 \ 0]^{\top}$ and ${\bm{B}}_0 = 1000{\bm{I}}_3$. The tuning parameter for the Metropolis–Hastings algorithm is set to 1.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ordered probit model}
+The ordered probit model is used when the categorical response variable has a natural ordering. In this case, there exists an unobserved latent variable $y_i^* = \bm{x}_i^{\top}\bm{\beta} + \mu_i$, where $\bm{x}_i$ is a $K$-dimensional vector of regressors and $\mu_i \stackrel{i.i.d.}{\sim} N(0,1)$. The observed outcome is defined as $y_i = l$ if and only if $\alpha_{l-1} < y_i^* \leq \alpha_l$, for $l \in \{1, 2, \dots, L\}$, where $\alpha_0 = -\infty$, $\alpha_1 = 0$, and $\alpha_L = \infty$.\footnote{Identification requires fixing the variance of the latent error term to 1 and setting $\alpha_1 = 0$. Note that multiplying $y_i^*$ by a positive constant, or adding a constant to all the cut-offs and subtracting the same constant from the intercept, does not affect the observed outcome $y_i$.} 
+
+The probability of observing category $l$ is given by
+\[
+p(y_i = l) = \Phi(\alpha_l - \bm{x}_i^{\top}\bm{\beta}) - \Phi(\alpha_{l-1} - \bm{x}_i^{\top}\bm{\beta}),
+\]
+and the likelihood function is
+\[
+p(\bm{\beta}, \bm{\alpha} \mid \bm{y}, \bm{X}) = \prod_{i=1}^{N} p(y_i = l \mid \bm{\beta}, \bm{\alpha}, \bm{X}).
+\]
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ordered probit model}
+The priors are assumed to be independent, i.e., $\pi(\bm{\beta}, \bm{\gamma}) = \pi(\bm{\beta}) \times \pi(\bm{\gamma})$, where $\bm{\beta} \sim N(\bm{\beta}_0, \bm{B}_0)$ and $\bm{\gamma} \sim N(\bm{\gamma}_0, \bm{\Gamma}_0)$, with $\bm{\gamma} = [\gamma_2 \ \gamma_3 \ \dots \ \gamma_{L-1}]^{\top}$ such that
+\[
+\bm{\alpha} = 
+\begin{bmatrix}
+	\exp\{\gamma_2\} \\ 
+	\sum_{l=2}^{3} \exp\{\gamma_l\} \\ 
+	\vdots \\ 
+	\sum_{l=2}^{L-1} \exp\{\gamma_l\}
+\end{bmatrix}.
+\]
+This parameterization enforces the ordering constraint on the cut-offs.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ordered probit model}
+Inference can be performed using a Metropolis-within-Gibbs sampling algorithm. In particular, we use Gibbs sampling to draw $\bm{\beta}$ and $\bm{y}^*$, where
+\[
+\bm{\beta} \mid \bm{y}^*, \bm{\alpha}, \bm{X} \sim N(\bm{\beta}_n, \bm{B}_n),
+\]
+with $\bm{B}_n = (\bm{B}_0^{-1} + \bm{X}^{\top}\bm{X})^{-1}$ and $\bm{\beta}_n = \bm{B}_n(\bm{B}_0^{-1}\bm{\beta}_0 + \bm{X}^{\top}\bm{y}^*)$, and
+\[
+y_i^* \mid \bm{\beta}, \bm{\alpha}, \bm{y}, \bm{X} \sim TN_{(\alpha_{y_i-1}, \alpha_{y_i})}(\bm{x}_i^{\top}\bm{\beta}, 1).
+\]
+
+For $\bm{\gamma}$, we employ a random-walk Metropolis--Hastings algorithm with a Gaussian proposal distribution centered at the current value and covariance matrix $s^2(\bm{\Gamma}_0^{-1} + \hat{\bm{\Sigma}}_{\gamma}^{-1})^{-1}$, where $s > 0$ is a tuning parameter and $\hat{\bm{\Sigma}}_{\gamma}$ denotes the sample covariance matrix of $\bm{\gamma}$ obtained from the maximum likelihood estimation.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ordered probit model: Determinants of preventive health care visits}
+The dependent variable is \textit{MedVisPrevOr}, an ordered variable equal to 1 if the individual did not visit a physician for preventive reasons, 2 if the individual visited once during the year, and so on, up to 6 if the individual visited five or more times.
+
+The set of regressors includes \textit{SHI}, an indicator variable equal to 1 if the individual is enrolled in the subsidized health care system; \textit{Female}, a gender indicator; \textit{Age} and its square; socioeconomic status indicators (\textit{Est2} and \textit{Est3}), with the lowest level as the reference category; self-perceived health status (\textit{Fair}, \textit{Good}, and \textit{Excellent}), where \textit{Bad} serves as the baseline; and education level (\textit{PriEd}, \textit{HighEd}, \textit{VocEd}, \textit{UnivEd}), with \textit{No education} as the reference category.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Quantile regression}
+The location parameters vary across quantiles of the dependent variable. Let $q_{\tau}(\bm{x}_i) = \bm{x}_i^{\top} \bm{\beta}_{\tau}$ denote the $\tau$-th quantile regression function of $y_i$ given $\bm{x}_i$, where $\bm{x}_i$ is a $K$-dimensional vector of regressors and $0 < \tau < 1$. Specifically, we consider the model $y_i = \bm{x}_i^{\top} \bm{\beta}_{\tau} + \mu_i$, subject to the condition $\int_{-\infty}^{0} f_{\tau}(\mu_i) \, d\mu_i = \tau$, meaning that the $\tau$-th quantile of $\mu_i$ is 0.
+
+\cite{Kozumi2011} propose modeling $f_{\tau}(\mu_i)$ using the asymmetric Laplace distribution, given by 
+\[
+f_{\tau}(\mu_i) = \tau(1 - \tau) \exp\left\{- \mu_i \big(\tau - \mathbbm{1}(\mu_i < 0)\big) \right\},
+\]
+where $\mu_i \big(\tau - \mathbbm{1}(\mu_i < 0)\big)$ is the check (loss) function.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Quantile regression}
+This distribution admits a location–scale mixture of normals representation:
+\[
+\mu_i = \theta e_i + \psi \sqrt{e_i} z_i,
+\]
+where $\theta = \frac{1 - 2\tau}{\tau(1 - \tau)}$, $\psi^2 = \frac{2}{\tau(1 - \tau)}$, $e_i \sim E(1)$, and $z_i \sim N(0,1)$, with $e_i \perp z_i$.
+
+Given this representation and assuming that the sample is i.i.d., the likelihood function becomes
+\[
+p(\bm{y} \mid \bm{\beta}_{\tau}, \bm{e}, \bm{X}) \propto 
+\left( \prod_{i=1}^{N} e_i^{-1/2} \right) 
+\exp\left\{ - \sum_{i=1}^{N} 
+\frac{(y_i - \bm{x}_i^{\top}\bm{\beta}_{\tau} - \theta e_i)^2}{2 \psi^2 e_i} 
+\right\}.
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Quantile regression}
+Assuming a normal prior for $\bm{\beta}_{\tau}$, i.e., $\bm{\beta}_{\tau} \sim N(\bm{\beta}_{\tau 0}, \bm{B}_{\tau 0})$, and applying data augmentation for $\bm{e}$, a Gibbs sampling algorithm can be implemented for this model. The posterior distributions are:
+\begin{equation*}
+	\bm{\beta}_{\tau} \mid \bm{e}, \bm{y}, \bm{X} \sim N(\bm{\beta}_{n\tau}, \bm{B}_{n\tau}),
+\end{equation*}
+\begin{equation*}
+	e_i \mid \bm{\beta}_{\tau}, \bm{y}, \bm{X} \sim \text{GIG}\left( \frac{1}{2}, \alpha_{ni}, \delta_{ni} \right),\footnote{GIG denotes a generalized inverse Gaussian density.}
+\end{equation*}
+where
+\(
+\bm{B}_{n\tau} = \left( \bm{B}_{\tau 0}^{-1} + \sum_{i=1}^{N} \frac{\bm{x}_i \bm{x}_i^{\top}}{\psi^2 e_i} \right)^{-1},\) \(\bm{\beta}_{n\tau} = \bm{B}_{n\tau} \left( \bm{B}_{\tau 0}^{-1} \bm{\beta}_{\tau 0} + \sum_{i=1}^{N} \frac{\bm{x}_i (y_i - \theta e_i)}{\psi^2 e_i} \right),\) \(
+\alpha_{ni} = \frac{(y_i - \bm{x}_i^{\top}\bm{\beta}_{\tau})^2}{\psi^2},\) and \(\delta_{ni} = 2 + \frac{\theta^2}{\psi^2}.
+\)
+\end{frame}
+
+\begin{frame}
+	\frametitle{Quantile regression: The market value of soccer players in Europe continues}
+We continue with the example of the market value of soccer players. We now examine whether the marginal effect of having played on the national team varies across the quantiles of the market value distribution of top European soccer players. We use the same set of regressors as in the previous example but focus on the effects at the 0.5 and 0.9 quantiles of \textit{NatTeam}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian bootstrap}
+Let $y_i \stackrel{i.i.d.}{\sim} \mathcal{F}$, where $\mathcal{F}$ does not correspond to any specific parametric family of distributions but satisfies $\mathbb{E}(y_i \mid \bm{x}_i) = \bm{x}_i^{\top}\bm{\beta}$. Here, $\bm{x}_i$ is a $K$-dimensional vector of regressors, and $\bm{\beta}$ is a $K$-dimensional vector of parameters. The Bayesian bootstrap generates posterior probabilities associated with each $y_i$, assigning zero probability to unobserved values of $\bm{y}$.
+\end{frame}
+
+\begin{frame}{Bayesian bootstrap}
+	\begin{algorithm}[H]
+		\caption{Bayesian bootstrap}\label{Alg:BB}
+		\begin{algorithmic}[1]
+			\State Draw $\bm{g}\sim Dir(\alpha_1,\alpha_2,\dots,\alpha_N)$ such that $\alpha_i=1 \ \forall i$.
+		\State $\bm{g}=(g_1,g_2,\dots,g_N)$ is the vector of probabilities to attach to $(y_1,\bm{x}_1^{\top}),(y_2,\bm{x}_2^{\top}),\dots,(y_n,\bm{x}_N^{\top})$ for each Bayesian bootstrap replication.
+		\For{\texttt{$s=1,\dots,S$}}
+			\State Sample $(y_i,\bm{x}_i^{\top})$ $N$ times with replacement and probabilities $g_i$, $i=1,2,\dots,N$.
+			\State Estimate $\bm{\beta}^{(s)}$ using weighted least squares in the model $\mathbb{E}(\bm{y}\mid \bm{X})=\bm{X}\bm{\beta}$, where the weights are based on $g_i$.$^*$ 
+		\EndFor
+		\State The distribution of $\bm{\beta}^{(s)}$ is the posterior distribution of $\bm{\beta}$. 
+		\end{algorithmic}
+        $^*${\footnotesize{Ordinary least squares is the posterior mean of $\bm{\beta}$ using Jeffrey's prior.}}
+	\end{algorithm}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+	
+\end{document}

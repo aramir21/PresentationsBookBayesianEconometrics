@@ -1,0 +1,552 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment}
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{A brief summary of theory}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+
+%\tikzstyle{every picture}+=[remember picture]
+%\everymath{\displaystyle}
+%\tikzstyle{na} = [baseline=-.5ex]
+\maketitle
+
+% \begin{frame}
+% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+% \maketitle
+% \end{frame}
+
+
+
+\section*{Outline}
+\begin{frame}
+\textbf{\Large{Outline}}
+\tableofcontents
+\end{frame}
+
+\section{The Bayes' rule}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{block}{Bayes' rule}
+		As expected the point of departure to perform Bayesian inference is the Bayes' rule, that is, the conditional probability of $A_i$ given $B$ is equal to the conditional probability of $B$ given $A_i$ times the marginal probability of $A_i$ over the marginal probability of $B$,
+	\end{block}
+
+	\begin{align}\label{eq1}
+	P(A_i|B)&=\frac{P(A_i,B)}{P(B)}\nonumber\\
+	&=\frac{P(B|A_i) \times P(A_i)}{P(B)},
+	\end{align}
+	
+	where $P(B)=\sum_i P(B|A_i)P(A_i)\neq 0$, $\left\{A_i, i=1,2,\dots\right\}$ is a finite or countably infinite partition of a sample space.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{block}{The base rate fallacy}
+		Assume that the sample information comes from a positive result from a test whose true positive rate (sensitivity) is 98\%, i.e., \( P(+ \mid \text{disease}) = 0.98 \). In addition, the false positive rate is 2\%, i.e., \( P(+ \mid \lnot\text{disease}) = 0.02 \). On the other hand, the prior probability of being infected with the disease is given by the base incidence rate, \( P(\text{disease}) = 0.002 \). The question is: \textbf{What is the probability of actually being infected, given a positive test result?}		
+	\end{block}
+	\begin{equation*}
+	P(\text{disease}|+) = \frac{P(+|\text{disease})\times P(\text{disease})}{P(+)},
+	\end{equation*}
+	
+	where $P(+)=P(+|\text{disease})\times P(\text{disease})+P(+|\lnot\text{disease})\times P( \lnot\text{disease})$.
+	
+\end{frame}
+
+\begin{comment}
+	
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{block}{God existence}
+		Let's say that there are two cases of resurrection (Res), Jesus Christ and Elvis, and the total number of people who have ever lived is 108.5 billion, then the prior base rate is 2/108,500,000,000. On the other hand, the sample information comes from a very reliable witness whose true positive rate is  0.9999999. Then, \textbf{what is the probability of this miracle?} 
+		
+	\end{block}
+	\begin{equation*}
+	P(\text{Res}|\text{Witness}) = \frac{P(\text{Witness}|\text{Res})\times P(\text{Res})}{P(\text{Witness})},
+	\end{equation*}
+	
+	where $P(\text{Witness})=P(\text{Witness}|\text{Res})\times P(\text{Res})+(1-P(\text{Witness}|\text{Res}))\times (1-P(\text{Res}))$.
+	
+\end{frame}
+\end{comment}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	
+	\begin{block}{Conditional version of the Bayes' rule}
+	Let's have two conditioning events $B$ and $C$, then equation \ref{eq1} becomes		
+	\end{block}
+
+	\begin{align*}
+	P(A_i|B,C)&=\frac{P(A_i,B,C)}{P(B,C)}\\
+		&=\frac{P(B|A_i,C) \times P(A_i|C) \times P(C)}{P(B|C)P(C)},
+	\end{align*}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{block}{The Monty Hall problem}
+		This was the situation faced by a contestant in the American television game show \textit{Let's Make a Deal}. There, the contestant was asked to choose a door where behind one door there is a car, and behind the others, goats. Let's say that the contestant picks door No. 1, and the host (Monty Hall), who knows what is behind each door, opens door No. 3, where there is a goat. Then, the host asks the tricky question to the contestant, \textbf{do you want to pick door No. 2?} 		
+	\end{block}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{figure}
+		\includegraphics[width=250pt, height=150pt]{Figures/MHproblemNew.png}
+		\caption[List of figure caption goes here]{The Monty Hall show.}\label{fig11}
+	\end{figure}
+\end{frame}
+
+
+\begin{frame}{The Bayes' rule}
+	\begin{block}{\href{https://www.youtube.com/watch?v=CYyUuIXzGgI}{The Monty-Hall Show in Hollywood: 21 (Min 1.10-1.54)}}
+		\begin{figure}
+			\includegraphics[width=300pt, height=200pt]{Figures/21_2008film.jpg}
+			\caption[List of figure caption goes here]{The Monty-Hall Show in Hollywood: 21.}\label{fig4}
+		\end{figure}
+	\end{block}
+\end{frame}
+
+\begin{frame}{The Bayes' rule}
+	\begin{block}{The Monty-Hall Show: Kahoot}
+		\begin{figure}
+			\includegraphics[width=300pt, height=200pt]{Figures/Kahoot.png}
+			\caption[List of figure caption goes here]{The Monty-Hall Show in Hollywood: Kahoot.}\label{fig4a}
+		\end{figure}
+	\end{block}
+\end{frame}
+
+\begin{frame}{The Bayes' rule}
+	\begin{block}{The Monty-Hall Show in popular science: The Theory That Would Not Die by Sharon Bertsch McGrayne}
+		\begin{figure}
+			\includegraphics[width=300pt, height=200pt]{Figures/TheoryNoDie.jpg}
+			\caption[List of figure caption goes here]{The Monty-Hall Show in popular science: The Theory That Would Not Die.}\label{fig2}
+		\end{figure}
+	\end{block}
+\end{frame}
+
+\begin{frame}{The Bayes' rule}
+	\begin{block}{\href{https://www.jstor.org/stable/2683689?seq=1}{The Monty-Hall Show in science: Ask Marilyn}}
+		\begin{figure}
+			\includegraphics[width=300pt, height=200pt]{Figures/LetsMakeDeal.png}
+			\caption[List of figure caption goes here]{The Monty-Hall Show in science: Ask Marilyn.}\label{fig3}
+		\end{figure}
+	\end{block}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{The Bayes' rule}
+	\begin{block}{The Monty Hall problem}
+		Let's name $P_i$ the event \textit{contestant picks door No. $i$}, $H_i$ the event \textit{host picks door No. $i$}, and $C_i$ the event \textit{car is behind door No. $i$}. In this particular setting, the contestant is interested in the probability of the event $P(C_2|H_3,P_1)$.
+		
+		The important point here is that the host knows what is behind each door and randomly picks a door given contestant choice. That is, $P(H_3|C_3,P_1)=0$, $P(H_3|C_2,P_1)=1$ and $P(H_3|C_1,P_1)=1/2$.		
+	\end{block}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Bayes' rule}	
+	\begin{align*}
+	P(C_2|H_3,P_1)&= \frac{P(C_2,H_3,P_1)}{P(H_3,P_1)}\\
+	&= \frac{P(H_3|C_2,P_1)P(C_2|P_1)P(P_1)}{P(H_3|P_1)\times P(P_1)}\\
+	&= \frac{P(H_3|C_2,P_1)P(C_2)}{P(H_3|P_1)}\\
+	&=\frac{1\times 1/3}{1/2}\\
+	&=\frac{2}{3},
+	\end{align*}
+\end{frame}
+
+
+\section{A brief summary of theory}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	\begin{block}{Bayes' rule}
+		For two random objects $\boldsymbol{\theta}$ and $\boldsymbol{y}$, the Bayes' rule may be analogously used,
+	\end{block}
+	
+	\begin{align}\label{eq2}
+	\pi(\boldsymbol{\theta}|\boldsymbol{y})&=\frac{p(\boldsymbol{y}|\boldsymbol{\theta}) \times \pi(\boldsymbol{\theta})}{p(\boldsymbol{y})},
+	\end{align}
+	
+	where $\pi(\boldsymbol{\theta}|\boldsymbol{y})$ is the posterior density function, $\pi(\boldsymbol{\theta})$ is the prior density, $p(\boldsymbol{y}|\boldsymbol{\theta})$ is the likelihood (statistical model), and  $p(\boldsymbol{y})=\int_{\boldsymbol{\Theta}}p(\boldsymbol{y}|\boldsymbol{\theta})\pi(\boldsymbol{\theta})d\boldsymbol{\theta}$ is the marginal likelihood or prior predictive. 	
+\end{frame}
+
+\begin{comment}
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	\begin{block}{Bayes' rule}
+		For two random objects $\boldsymbol{\theta}$ and $\boldsymbol{y}$, the Bayes' rule may be analogously used,
+	\end{block}
+	
+	\begin{align}\label{eq2}
+	\pi(\boldsymbol{\theta}|\boldsymbol{y})&=\frac{p(\boldsymbol{y}|\boldsymbol{\theta}) \times \pi(\boldsymbol{\theta})}{p(\boldsymbol{y})}\\
+	&\propto p(\boldsymbol{y}|\boldsymbol{\theta}) \times \pi(\boldsymbol{\theta}),
+	\end{align}
+	
+	where $\pi(\boldsymbol{\theta}|\boldsymbol{y})$ is the posterior density function, $\pi(\boldsymbol{\theta})$ is the prior density, $p(\boldsymbol{y}|\boldsymbol{\theta})$ is the likelihood (statistical model), and  $p(\boldsymbol{y})=\int_{\boldsymbol{\Theta}}p(\boldsymbol{y}|\boldsymbol{\theta})\pi(\boldsymbol{\theta})d\boldsymbol{\theta}$ is the marginal likelihood or prior predictive. 	
+\end{frame}
+\end{comment}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	\begin{block}{Model uncertainty}
+		Observe that the Bayesian inferential approach is conditional, that is, what can we learn about an unknown object $\boldsymbol{\theta}$ given that we already observed $\boldsymbol{y}$? The answer is also conditional on the probabilistic model, that is $p(\boldsymbol{y}|\boldsymbol{\theta})$. So, what if we want to compare different models, let's say $\mathcal{M}_m$, $m=\left\{1,2,\dots,M\right\}$.
+	\end{block}
+	
+	\begin{align}\label{eq3}
+	\pi(\boldsymbol{\theta}|\boldsymbol{y},\mathcal{M}_m)&=\frac{p(\boldsymbol{y}|\boldsymbol{\theta},\mathcal{M}_m) \times \pi(\boldsymbol{\theta}|\mathcal{M}_m)}{p(\boldsymbol{y}|\mathcal{M}_m)}.
+	\end{align} 	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+The posterior model probability is
+
+\begin{align}
+\pi(\mathcal{M}_m|\boldsymbol{y})&=\frac{p(\boldsymbol{y}|\mathcal{M}_m) \times \pi(\mathcal{M}_m)}{p(\boldsymbol{y})}, 
+\end{align}
+
+where $p(\boldsymbol{y}|\mathcal{M}_m)=\int_{\boldsymbol{\Theta}}p(\boldsymbol{y}|\boldsymbol{\theta},\mathcal{M}_m) \times \pi(\boldsymbol{\theta}|\mathcal{M}_m)d\boldsymbol{\theta}$ due to equation \ref{eq3}, and $\pi(\mathcal{M}_m)$ is the prior model probability. 
+ 	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Posterior odds}
+	We can avoid calculating $p(\boldsymbol{y})$ when performing model selection (hypothesis testing) using posterior odds ratio, that is, comparing models $\mathcal{M}_1$ and $\mathcal{M}_2$,
+	\end{block}
+
+	\begin{align}\label{eq5}
+	PO_{12}&=\frac{\pi(\mathcal{M}_1|\boldsymbol{y})}{\pi(\mathcal{M}_2|\boldsymbol{y})}\nonumber \\
+	&=\frac{p(\boldsymbol{y}|\mathcal{M}_1)}{p(\boldsymbol{y}|\mathcal{M}_2)}\times\frac{\pi(\mathcal{M}_1)}{\pi(\mathcal{M}_2)},
+	\end{align} 
+	where the first term in equation \ref{eq5} is named the Bayes Factor, and the second term is the prior odds.
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Posterior probabilities from posterior odds}
+	Given two models $\mathcal{M}_1$ and $\mathcal{M}_2$ such that $\pi(\mathcal{M}_1|\boldsymbol{y})+\pi(\mathcal{M}_2|\boldsymbol{y})=1$. Then, $\pi(\mathcal{M}_1|\boldsymbol{y})=\frac{PO_{12}}{1+PO_{12}}$ and $\pi(\mathcal{M}_2|\boldsymbol{y})=1-\pi(\mathcal{M}_1|\boldsymbol{y})$.\\ 
+	
+	In general, $\pi(\mathcal{M}_m|\boldsymbol{y})=\frac{p(\boldsymbol{y}|\mathcal{M}_m)\times \pi(\mathcal{M}_m)}{\sum_{l=1}^M p(\boldsymbol{y}|\mathcal{M}_l)\times \pi(\mathcal{M}_l)}$.
+	\end{block}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+
+\begin{table}
+\begin{center}
+	\begin{tabular}{ c| c| c }
+		$2\log(PO_{12})$ & $PO_{12}$ & Evidence against $M_2$ \\
+		\hline
+		0 to 2 &	1 to 3 & Not worth more than a bare mention\\
+		2 to 6 &	3 to 20	& Positive\\
+		6 to 10 &	20 to 150 &	Strong\\
+		$>$ 10 &	$>$ 150 &	Very strong\\
+		\hline
+		\end{tabular}
+	\caption{Kass and Raftery guidelines (1995)}
+	\label{tab1}
+\end{center}
+\end{table}
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Probabilistic predictions}
+		We can also obtain a posterior predictive distribution,
+	\end{block}	
+\begin{align}\label{eq6}
+\pi(\boldsymbol{Y}_0|\boldsymbol{y},\mathcal{M}_m) & =\int_{\boldsymbol{\Theta}}\pi(\boldsymbol{Y}_0,\boldsymbol{\theta}|\boldsymbol{y},\mathcal{M}_m)d\boldsymbol{\theta}\nonumber\\
+&=\int_{\boldsymbol{\Theta}}\pi(\boldsymbol{Y}_0|\boldsymbol{\theta},\boldsymbol{y},\mathcal{M}_m)\pi(\boldsymbol{\theta}|\boldsymbol{y},\mathcal{M}_m)d\boldsymbol{\theta}.
+\end{align}
+Observe that equation \ref{eq6} is a posterior expectation $\mathbb{E}[\pi(\boldsymbol{Y}_0|\boldsymbol{\theta},\boldsymbol{y},\mathcal{M}_m)]$. This is a very common feature in Bayesian inference that is suitable for computation based on Monte Carlo integration. In addition, the Bayesian approach takes estimation error into account.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Model uncertainty in prediction}
+	If we want to consider model uncertainty in prediction or any unknown probabilistic object, we can follow same arguments. In the prediction case,
+	\end{block}	
+	\begin{align}
+	\pi(\boldsymbol{Y}_0|\boldsymbol{y})&=\sum_{m=1}^M \pi(\mathcal{M}_m|\boldsymbol{y})\pi(\boldsymbol{Y}_0|\boldsymbol{y},\mathcal{M}_m),
+	\end{align}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Model uncertainty in parameters' inference}
+		In parameters,
+	\end{block}	
+\begin{align}
+\pi(\boldsymbol{\theta}|\boldsymbol{y})&=\sum_{m=1}^M \pi(\mathcal{M}_m|\boldsymbol{y})\pi(\boldsymbol{\theta}|\boldsymbol{y},\mathcal{M}_m),
+\end{align}
+
+where $\mathbb{E}(\boldsymbol{\theta}|\boldsymbol{y})=\sum_{m=1}^{M}\hat{\boldsymbol{\theta}}_m \pi(\mathcal{M}_m|\boldsymbol{y}),
+$ $
+Var({\theta}_k\mid \boldsymbol{y})= \sum_{m=1}^{M}\pi(\mathcal{M}_m\mid \boldsymbol{y}) \widehat{Var} ({\theta}_{km}\mid \boldsymbol{y},\mathcal{M}_m)+\sum_{m=1}^{M} \pi(\mathcal{M}_m\mid \boldsymbol{y}) (\hat{{\theta}}_{km}-\mathbb{E}[{\theta}_{km}\mid \boldsymbol{y}])^2$,
+$\hat{\boldsymbol{\theta}}_{km}$ and $\widehat{Var}(\boldsymbol{\theta}_{km}|\boldsymbol{y},\mathcal{M}_m)$ are the posterior mean and variance of $\theta_k$ under model $m$.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Bayesian updating}
+		A nice advantage of the Bayesian approach, which is very useful in \textit{state space models}, is the way that the posterior distribution updates with new sample information. Given $\boldsymbol{y}=\boldsymbol{y}_{1:t+1}$ a sequence of observations, then
+	\end{block}	
+	\begin{align*}
+	\pi(\boldsymbol{\theta}|\boldsymbol{y}_{1:t+1})&\propto p(\boldsymbol{y}_{1:t+1}|\boldsymbol{\theta})\times \pi(\boldsymbol{\theta})\\
+	&= p(y_{t+1}|\boldsymbol{y}_{1:t},\boldsymbol{\theta})\times p(\boldsymbol{y}_{1:t}|\boldsymbol{\theta})\times \pi(\boldsymbol{\theta})\\
+	&\propto p(y_{t+1}|\boldsymbol{y}_{1:t},\boldsymbol{\theta})\times \pi(\boldsymbol{\theta}|\boldsymbol{y}_{1:t}). 
+	\end{align*}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Bayesian updating}
+	This is particular useful under the assumption of \textit{conditional independence}, that is, $Y_{t+1}\perp\boldsymbol{Y}_{1:t}|\boldsymbol{\theta}$, then $p(y_{t+1}|\boldsymbol{y}_{1:t},\boldsymbol{\theta})=p(y_{t+1}|\boldsymbol{\theta})$ such that the posterior can be recovered recursively. This facilities online updating due to all information up to $t$ being in $\boldsymbol{\theta}$. Then, $\pi(\boldsymbol{\theta}|\boldsymbol{y}_{1:t+1})\propto p(y_{t+1}|\boldsymbol{\theta})\times \pi(\boldsymbol{\theta}|\boldsymbol{y}_{1:t})\propto\prod_{h=1}^{t+1} p(y_h|\boldsymbol{\theta})\times \pi(\boldsymbol{\theta})$.
+	\end{block}	
+
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Sampling properties of Bayesian ``estimators''}
+		\begin{align*}
+		\pi(\theta|\boldsymbol{y})&\propto \exp\left\{{l}(\boldsymbol{y}|\theta)\right\} \times \pi(\theta)\\
+		&\approx \exp\left\{{l}(\boldsymbol{y}|\hat{\theta})-\frac{N}{2\sigma^2}(\theta-\hat{\theta})^2\right\} \times \pi(\theta)\\
+		&\propto \exp\left\{-\frac{N}{2\sigma^2}(\theta-\hat{\theta})^2\right\} \times \pi(\theta)\\ 
+		\end{align*}
+	\end{block}	
+Observe that we have that the posterior density is proportional to the kernel of a normal density with mean $\hat{\theta}$ and variance $\sigma^2/N$ as long as $\pi(\hat{\theta})\neq 0$. This kernel dominates as the sample size gets large due to N in the exponential term.
+\end{frame}
+
+\section{Decision theory}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Estimation problems}
+	From a Bayesian perspective, we should choose the action that minimizes the posterior expected loss ($a^*(\mathbf{y})$), that is, the \textit{posterior risk function} ($\mathbb{E}[L(\mathbf{\theta}, a)\mid \mathbf{y}]$),
+	\begin{equation*}
+		a^*(\mathbf{y})=\underset{a \in \mathcal{A}}{\mathrm{argmin}} \  \mathbb{E}[L(\mathbf{\theta}, a)\mid \mathbf{y}], 
+	\end{equation*}
+	where $\mathbb{E}[L(\mathbf{\theta}, a)\mid \mathbf{y}] = \int_{\mathbf{\Theta}} L(\mathbf{\theta}, a)\pi(\mathbf{\theta}\mid \mathbf{y})d\mathbf{\theta}$
+	\begin{block}{Result 1}
+		The quadratic loss function, $L(\theta,a)=[\theta-a]^2$, gives as the optimal decision the posterior mean, $a^*(\mathbf{y})=\mathbb{E}[\theta \mid \mathbf{y}]$
+	\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Estimation problems}
+	\begin{block}{Result 2}
+	$L(\theta,a) = w(\theta) [\theta - a]^2$, where $w(\theta) > 0$ is a weighting function, the Bayes rule is $a^*(\mathbf{y}) = \frac{\mathbb{E}[w(\theta) \times \theta \mid \mathbf{y}]}{\mathbb{E}[w(\theta) \mid \mathbf{y}]}.$
+	\end{block}
+	\begin{block}{Result 3}
+		If $L(\theta,a)=|\theta-a|$, the median is a Bayesian estimate of $\theta$.
+	\end{block}
+	\begin{block}{Result 4}
+		If $L(\theta,a)=\begin{Bmatrix}
+		K_0(\theta-a), \theta-a\geq 0\\
+		K_1(a-\theta), \theta-a< 0\\
+		\end{Bmatrix}$
+		the $K_0/(K_0+K_1)$-percentile of $\pi(\theta|\boldsymbol{y})$ is a Bayes estimate of $\theta$.
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Hypothesis test}
+	\begin{block}{Result 5}
+		In testing $H_0:\theta\in\Theta_0$ versus $H_1:\theta\in\Theta_1$, the actions of interest are $a_0$ and $a_1$, where $a_i$ denotes no rejection of $H_i$.\\
+		
+		If $L(\theta,a_i)=\begin{Bmatrix}
+		0, \theta\in \Theta_i\\
+		K_i, \theta\in\Theta_j(j\neq i)\\
+		\end{Bmatrix}$, the posterior expected losses of $a_0$ and $a_1$ are $K_0P(\Theta_1|\boldsymbol{y})$ and $K_1P(\Theta_0|\boldsymbol{y})$, respectively. The Bayes decision is that corresponding to the smallest posterior expected loss. 
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Hypothesis test}
+	\begin{block}{Result 5}
+		In the Bayesian test, the null hypothesis is rejected, that is, action $a_1$ is taken, when $\frac{K_0}{K_1}>\frac{P(\Theta_0|\boldsymbol{y})}{P(\Theta_1|\boldsymbol{y})}$, where usually $\Theta=\Theta_0 \cup \Theta_1$, then $P(\Theta_1|\boldsymbol{y})>\frac{K_1}{K_1+K_0}$.\\
+		
+		In classical terminology, the rejection region of the Bayesian test is $R=\left\{\boldsymbol{y}:P(\Theta_1|\boldsymbol{y})>\frac{K_1}{K_1+K_0} \right\}$. 
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Inference losses}
+	\begin{block}{Credible sets}
+		Let $\Theta_{C(\mathbf{y})} \subset \Theta$ be a \textit{credible set} for $\theta$, and let the loss function be defined as:
+		
+		\[
+		L(\theta, \Theta_{C(\mathbf{y})}) = 1 - \mathbf{1}\left\{\theta \in \Theta_{C(\mathbf{y})}\right\},
+		\]
+		
+		where
+		
+		\[
+		\mathbf{1}\left\{\theta \in \Theta_{C(\mathbf{y})}\right\} =
+		\begin{cases}
+			1, & \text{if } \theta \in \Theta_{C(\mathbf{y})}, \\
+			0, & \text{if } \theta \notin \Theta_{C(\mathbf{y})}.
+		\end{cases}
+		\]
+	\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Posterior credible sets}
+	\begin{block}{Credible sets}
+		Thus, the loss function becomes:
+		
+		\[
+		L(\theta, \Theta_{C(\mathbf{y})}) =
+		\begin{cases}
+			0, & \text{if } \theta \in \Theta_{C(\mathbf{y})}, \\
+			1, & \text{if } \theta \notin \Theta_{C(\mathbf{y})}.
+		\end{cases}
+		\]
+		
+		Consequently, the risk function is:
+		
+		\[
+		1 - P(\theta \in \Theta_{C(\mathbf{y})}).
+		\]
+		
+\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Posterior credible sets}
+	\begin{block}{Credible sets}
+		Given a \textit{measure of credibility} $\alpha(\mathbf{y})$ that defines the level of trust that $\theta \in \Theta_{C(\mathbf{y})}$, we can measure the accuracy of the report by the loss function:
+		
+		\[
+		L(\theta, \alpha(\mathbf{y})) = \left[\mathbf{1}\left\{\theta \in \Theta_{C(\mathbf{y})}\right\} - \alpha(\mathbf{y})\right]^2.
+		\]
+		
+		This loss function could be used to suggest a choice of the report $\alpha(\mathbf{y})$. The optimal action is the posterior mean, that is,
+		
+		\[
+		\mathbb{E}[\mathbf{1}\left\{\theta \in \Theta_{C(\mathbf{y})}\right\} \mid \mathbf{y}] = P(\theta \in \Theta_{C(\mathbf{y})} \mid \mathbf{y}).
+		\]	
+	\end{block}
+	
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Posterior credible sets}
+	\begin{block}{Credible sets}
+		This probability can be calculated given the posterior distribution as
+		
+		\[
+		P(\theta \in \Theta_{C(\mathbf{y})} \mid \mathbf{y}) = \int_{\Theta_{C(\mathbf{y})}} \pi(\theta \mid \mathbf{y}) \, d\theta.
+		\]
+		
+		This represents a measure of the belief that $\theta \in \Theta_{C(\mathbf{y})}$ given the prior beliefs and sample information.
+		
+	\end{block}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Posterior credible sets}
+	\begin{block}{Credible sets}
+The set $\Theta_{C(\mathbf{y})} \subset \Theta$ is a $100(1 - \alpha)\%$ credible set with respect to $\pi(\theta \mid \mathbf{y})$ if
+
+\[
+P(\theta \in \Theta_{C(\mathbf{y})} \mid \mathbf{y}) = \int_{\Theta_{C(\mathbf{y})}} \pi(\theta \mid \mathbf{y}) \, d\theta = 1 - \alpha.
+\]
+
+Two alternatives for reporting credible sets are the \textit{symmetric credible set} and the \textit{highest posterior density set} (HPD). The former is based on the $\frac{\alpha}{2}\%$ and $(1 - \frac{\alpha}{2})\%$ percentiles of the posterior distribution.
+	\end{block}
+	
+\end{frame}
+\begin{frame}
+	\frametitle{Bayesian Inference}
+	\framesubtitle{Highest Posterior Density sets}
+	\begin{block}{HPD}
+		A $100(1-\alpha)\%$ Highest Posterior Density set for $\theta$ is a $100(1-\alpha)\%$ credible interval for $\theta$ with the property that it has a smaller space than any other $100(1-\alpha)\%$ credible set for $\theta$.\\
+		$C=\left\{\theta:\pi(\theta|\boldsymbol{y})\geq k \right\}$, where $k$ is the largest number such that $\int_{\theta:\pi(\theta|\boldsymbol{y})\geq k}\pi(\theta|\boldsymbol{y})d\theta=1-\alpha$.\\
+		HPDs are very general tool in that they will exist any time the posterior exists. However, they are not rooted firmly in probability theory. 
+		
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: Health insurance}
+	
+Suppose that you are analyzing whether to buy health insurance next year. To make a better decision, you want to know \textit{what is the probability that you will visit your doctor at least once next year?} To answer this question, you have records of the number of times you have visited your doctor over the last 5 years, \( \mathbf{y} = \{0, 3, 2, 1, 0\} \). How should you proceed?
+\end{frame}
+
+\begin{frame}
+	\frametitle{A brief summary of theory}
+	
+	\begin{block}{Summary}
+		We have covered the fundamental theoretical concepts of Bayesian inference. The course is essentially complete, except, of course, that the devil is in the details!
+	\end{block}	
+\end{frame}
+
+
+%\begin{frame}[allowframebreaks]
+%	\frametitle{References}
+%		{\footnotesize
+%		\bibliographystyle{apalike}
+%		\bibliography{Biblio}}
+%\end{frame}
+			
+\end{document}

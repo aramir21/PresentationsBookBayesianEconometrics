@@ -1,0 +1,385 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, bm, dsfont}
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Corner Stone Models: Conjugate Families}
+\date{2025} % \today
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	\maketitle
+	
+	% \begin{frame}
+	% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+	% \maketitle
+	% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+
+\section{Exponential Family}
+\begin{frame}
+	\frametitle{Conjugate families}
+	\begin{block}{Definition}
+			Conjugate families are distributions for which the posterior distribution belongs to the same family as the prior distribution, given the likelihood.
+	\end{block}
+
+	\begin{itemize}
+		\item Conjugate prior distributions play an important role in Bayesian methods, because their use can simplify the process of integration required for marginalization.
+		\item When a prior and posterior are from a same family, the actualization process for parameters is simplified.
+	\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+	\frametitle{The fundamental pieces}
+	The three fundamental pieces of Bayesian analysis
+\begin{align}
+	\pi(\bm{\theta}\mid \bm{y})&=\frac{p(\bm{y}\mid \bm{\theta}) \times \pi(\bm{\theta})}{p(\bm{y})},
+	\label{eq:411}
+\end{align}
+
+\begin{equation}
+	p(\bm{y})=\int_{\bm{\Theta}}p(\bm{y}\mid \bm{\theta})\pi(\bm{\theta})d\bm{\theta},
+	\label{eq:412}
+\end{equation}
+
+and 
+
+\begin{equation}
+	p(\bm{y}_0\mid \bm{y})=\int_{\bm{\Theta}}p(\bm{y}_0\mid \bm{\theta})\pi(\bm{\theta}\mid \bm{y})d\bm{\theta}.
+	\label{eq:413}
+\end{equation}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Exponential family}
+We can achieve standard posterior distributions and analytical solutions if we assume that the data-generating process follows a distribution function in the \textit{exponential family}:
+\begin{align}
+	p(\bm{y}\mid \bm{\theta})&=h(\bm{y})\exp\left\{\eta(\bm{\theta})^{\top}\bm{T}(\bm{y})-A(\bm{\theta})\right\}\nonumber,
+	\end{align}
+where \( h(\bm{y}) = \prod_{i=1}^N h(y_i) \) is a non-negative function, \( \eta(\bm{\theta}) \) is a known function of the parameters, and \( A(\bm{\theta}) = \log\left\{ \int_{\bm{Y}} h(\bm{y}) \exp\left\{ \eta(\bm{\theta})^{\top} \bm{T}(\bm{y}) \right\} d\bm{y} \right\} = -N \log\left(C(\bm{\theta})\right) \) is the normalization factor. Additionally, \( \bm{T}(\bm{y}) = \sum_{i=1}^N \bm{T}(y_i) \) is the vector of sufficient statistics for the distribution.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Exponential family}
+\begin{block}{Bernoulli distribution}
+	Given a random sample $\bm{Y}=[Y_1 \ Y_2 \ \dots \ Y_N]^{\top}$ from a \textit{Bernoulli distribution}, the $p(\bm{y}\mid \theta)$ is in the exponential family.
+	\begin{align}
+		p(\bm{y}\mid \theta)&=\prod_{i=1}^N \theta^{y_i}(1-\theta)^{1-y_i}\nonumber\\
+		&=\theta^{\sum_{i=1}^N y_i}(1-\theta)^{N-\sum_{i=1}^N y_i}\nonumber\\
+		&=(1-\theta)^N\exp\left\{\sum_{i=1}^N y_i\log\left(\frac{\theta}{1-\theta}\right)\right\}\nonumber,
+	\end{align}
+	
+	then $h(\bm{y})=\mathds{1}[y_i\in\left\{0,1\right\}]$ (indicator function), $\eta(\theta)=\log\left(\frac{\theta}{1-\theta}\right)$, $T(\bm{y})=\sum_{i=1}^N y_i$ and $C(\theta)=1-\theta$.
+\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Exponential family}
+\begin{block}{Normal distribution}
+	Given a random sample $\bm{Y}=[Y_1 \ Y_2 \ \dots \ Y_N]^{\top}$ from a \textit{normal distribution}, $p(\bm{y}\mid \mu,\sigma^2)$ is in the exponential family.
+	{\small{
+	\begin{align}
+		p(\bm{y}\mid \mu,\sigma^2)&=\prod_{i=1}^N \frac{1}{2\pi\sigma^2}\exp\left\{-\frac{1}{2\sigma^2}\left(y_i-\mu\right)^2\right\}\nonumber\\
+		&= (2\pi)^{-N/2}\exp\left\{-\frac{1}{2\sigma^2}\sum_{i=1}^Ny_i^2+\frac{\mu}{\sigma^2}\sum_{i=1}^N y_i\right.\nonumber\\
+		&-\left.N\frac{\mu^2}{2\sigma^2}-\frac{N}{2}\log(\sigma^2)\right\}\nonumber.
+	\end{align}
+	
+	$h(\bm{y})=(2\pi)^{-N/2}$, $\eta(\mu,\sigma^2)=\left[\frac{\mu}{\sigma^2} \ \frac{-1}{2\sigma^2}\right]$, $T(\bm{y})=\left[\sum_{i=1}^N y_i \ \sum_{i=1}^N y_i^2\right]$ and $C(\mu,\sigma^2)=\exp\left\{-\frac{\mu^2}{2\sigma^2}-\frac{\log(\sigma^2)}{2}\right\}$.}}
+\end{block}
+\end{frame}
+
+\section{Conjugate Families}
+
+
+\begin{frame}
+	\frametitle{Theorem: Conjugate prior for exponential family}
+The prior distribution $\pi(\bm{\theta})\propto C(\bm{\theta})^{b_0}\exp\left\{\eta(\bm{\theta})^{\top}\bm{a}_0\right\}$ is conjugate to the exponential family.\\
+
+\textbf{Proof}
+\begin{align}
+	\pi(\bm{\theta}\mid \bm{y})& \propto C(\bm{\theta})^{b_0}\exp\left\{\eta(\bm{\theta})^{\top}\bm{a}_0\right\} \times h(\bm{y}) C(\bm{\theta})^N\exp\left\{\eta(\bm{\theta})^{\top}\bm{T}(\bm{y})\right\}\nonumber\\
+	& \propto C(\bm{\theta})^{N+b_0} \exp\left\{\eta(\bm{\theta})^{\top}(\bm{T}(\bm{y})+\bm{a}_0)\right\}.\nonumber 
+\end{align}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conjugate family}
+\begin{block}{Bernoulli distribution}
+	Given a random sample $\bm{Y}=[Y_1 \ Y_2 \ \dots \ Y_N]^{\top}$ from a Bernoulli distribution then a conjugate prior density for $\theta$ has the form 
+	\begin{align}
+		\pi(\theta)&\propto (1-\theta)^{b_0} \exp\left\{a_0\log\left(\frac{\theta}{1-\theta}\right)\right\}\nonumber\\
+		& = (1-\theta)^{b_0-a_0}\theta^{a_0}\nonumber\\
+		& = \theta^{\alpha_0-1}(1-\theta)^{\beta_0-1}.\nonumber
+	\end{align}
+	This is the kernel of a beta density, where \( \alpha_0 = a_0 + 1 \) and \( \beta_0 = b_0 - a_0 + 1 \). A prior conjugate distribution for the Bernoulli likelihood is a beta distribution. 
+\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conjugate family}
+	\begin{block}{Bernoulli distribution}
+		Observe that
+		\begin{align}
+			\pi(\theta\mid \bm{y})&\propto \theta^{\alpha_0-1}(1-\theta)^{\beta_0-1} \times \theta^{\sum_{i=1}^N y_i}(1-\theta)^{N-\sum_{i=1}^Ny_i}\nonumber\\
+			&= \theta^{\alpha_0+\sum_{i=1}^N y_i-1}(1-\theta)^{\beta_0+N-\sum_{i=1}^Ny_i-1}.\nonumber 
+		\end{align}
+		The posterior distribution is beta, $\theta\mid \bm{y}\sim B(\alpha_n,\beta_n)$, $\alpha_n=\alpha_0+\sum_{i=1}^N y_i$ and $\beta_n=\beta_0+N-\sum_{i=1}^Ny_i$, where the posterior mean $\mathbb{E}[\theta\mid \bm{y}]=\frac{\alpha_n}{\alpha_n+\beta_n}=\frac{\alpha_0+N\bar{y}}{\alpha_0+\beta_0+N}=\frac{\alpha_0+\beta_0}{\alpha_0+\beta_0+N}\frac{\alpha_0}{\alpha_0+\beta_0}+\frac{N}{\alpha_0+\beta_0+N}\bar{y}$. 
+		
+		The posterior mean is a weighted average between the prior mean and the maximum likelihood estimate. Note that \( \lim_{N \to \infty} \mathbb{E}[\lambda \mid \bm{y}] = \bar{y} \).
+	\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: Ph.D. students sleeping hours}
+We have a sample of 52 students, where 15 report sleeping at least 6 hours, and the remaining 37 report not sleeping at least 6 hours. The prior distribution is a Beta distribution, with hyperparameters calibrated so that the prior probabilities of the proportion of students who sleep least than 6 hours being less than 0.4 and 0.75 are 0.6 and 0.95, respectively. 
+{\tiny{
+\begin{table}[!htbp]
+	\caption{Probability distribution: Ph.D students that sleep at least 6 hours per day.}\label{tab:sleep}%
+	\begin{tabular}{cccccccccccc}
+		\hline
+		$h$   & 0.05 & 0.10 & 0.15 & 0.20 & 0.25 & 0.30 & 0.35 & 0.40 & 0.45 & 0.50 & 0.55  \\
+		\hline
+		$P(p=h)$ & 0.05 & 0.07 & 0.10 & 0.12 & 0.15 & 0.17 & 0.15 & 0.11 & 0.06 & 0.01 & 0.01 \\ 
+		\hline
+	\end{tabular}
+\end{table}
+}}
+
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Example: Ph.D. students sleeping hours}
+	\begin{enumerate}
+		\item Estimate the 95\% posterior credible interval for the proportion of Ph.D. students that sleep at least 6 hours.
+		\item Assume that there is a group of experts whose beliefs about the proportion of Ph.D. students sleeping at least 6 hours are represented in Table \ref{tab:sleep}. Find the posterior distribution of the proportion of students that sleep at least 6 hours.  
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: English premier league, Liverpool vs Manchester city}
+	
+	Let's consider an example using data from the English Premier League. In particular, we want to calculate the probability that, in the next five matches between Liverpool and Manchester City, Liverpool wins two games and Manchester City wins three.
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conjugate family}
+\begin{block}{Normal distribution}
+	Given a random sample $\bm{Y}=[Y_1 \ Y_2 \ \dots \ Y_N]^{\top}$ from a normal distribution, then the prior distribution is \( \mu \mid \sigma^2 \sim N\left(\mu_0, \frac{\sigma^2}{\beta_0}\right) \), and \( \sigma^2 \sim IG\left(\frac{\alpha_0}{2}, \frac{\delta_0}{2}\right) \).
+	
+	The posterior distributions are $\mu\mid \sigma^2,\bm{y}\sim N \left(\mu_n, \sigma_n^2\right)$, where $\mu_n=\frac{\beta_0\mu_0+N\bar{y}}{\beta_0+N}$ and $\sigma_n^2=\frac{\sigma^2}{\beta_n}$, $\beta_n=\beta_0+N$. In addition, $\sigma^2\mid \bm{y}\sim IG(\alpha_n/2,\delta_n/2)$ where $\alpha_n=\alpha_0+N$ and $\delta_n=\sum_{i=1}^N (y_i-\bar{y})^2+\delta_0+\frac{\beta_0N}{\beta_0+N}(\bar{y}-\mu_0)^2$.
+\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: Tangency portfolio of US tech stocks}
+	
+The tangency portfolio is the portfolio that maximizes the Sharpe ratio, which is defined as the excess return of a portfolio standardized by its risk.
+
+\begin{equation*}
+	\text{argmax}_{{\bm w}\in \mathbb{R}^{p}} \frac{{\bm w}^{\top}\bm{\mu}_{T+\kappa}}{\sqrt{{\bm w}^{\top}{\bm{\Sigma}}_{T+\kappa} {\bm w}}}; \hspace{1cm} \text{s.t}\hspace{.5cm} {\bm w}^{\top}{\bm{1}}=1,
+\end{equation*}
+where the solution is
+\begin{equation*}
+	{\bm w}^*=\frac{{\bm{\Sigma}}^{-1}_{T+\kappa}\bm{\mu}_{T+\kappa}}{{\bm{1}}^{\top}{\bm \Sigma}^{-1}_{T+\kappa}\bm{\mu}_{T+\kappa}}.
+\end{equation*}
+\end{frame}
+
+\section{Linear regression}
+
+
+\begin{frame}
+	\frametitle{Linear regression: Conjugate family}
+\begin{block}{Model}
+	\[
+	\bm{y} = \bm{X} \bm{\beta} + \bm{\mu},
+	\]
+	
+	where \( \bm{\mu} \sim N(\bm{0}, \sigma^2 \bm{I}) \).
+\end{block}
+
+\begin{block}{Prior}
+	The conjugate priors for the parameters are
+	\begin{align*}
+		\bm{\beta}\mid \sigma^2 & \sim N(\bm{\beta}_0, \sigma^2 {\bm{B}}_0),\\
+		\sigma^2 & \sim IG(\alpha_0/2, \delta_0/2).
+	\end{align*}
+\end{block}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Linear regression: Conjugate family}
+	\begin{block}{Posterior}
+		The posterior distribution:
+		$\bm{\beta}\mid \sigma^2, \bm{y}, \bm{X} \sim N(\bm{\beta}_n, \sigma^2\bm{B}_n)$ and $\sigma^2\mid  \bm{y}, \bm{X}\sim IG(\alpha_n/2, \delta_n/2)$, where $\bm{B}_n = (\bm{B}_0^{-1} + \bm{X}^{\top}\bm{X})^{-1}$, $\bm{\beta}_n = \bm{B}_n(\bm{B}_0^{-1}\bm{\beta}_0 + \bm{X}^{\top}\bm{X}\hat{\bm{\beta}})=(\bm{I}_K-{\bm{W}})\bm{\beta}_0+{\bm{W}}\hat{\bm{\beta}}$, ${\bm{W}}=({\bm{B}}_0^{-1} + {\bm{X}}^{\top}{\bm{X}})^{-1}{\bm{X}}^{\top}{\bm{X}}$, $\alpha_n = \alpha_0 + N$ and $\delta_n = \delta_0 + \bm{y}^{\top}\bm{y} + \bm{\beta}_0^{\top}\bm{B}_0^{-1}\bm{\beta}_0 - \bm{\beta}_n^{\top}\bm{B}_n^{-1}\bm{\beta}_n$.
+	\end{block}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Linear regression: Conjugate family}
+	\begin{block}{Marginal posterior distribution}
+		The marginal posterior distribution of the location parameters is a multivariate t distribution, $\boldsymbol{\beta}\mid {\boldsymbol{y}},{\boldsymbol{X}} \sim t_K(\alpha_n, \boldsymbol{\beta}_n, {\boldsymbol{H}}_n)$, where ${\boldsymbol{H}}_n = \frac{\delta_n}{\alpha_n}{\boldsymbol{B}}_n$.
+	\end{block}
+
+\begin{block}{Marginal likelihood}
+	The marginal likelihood is $p({\bm{y}})=\frac{1}{\pi^{N/2}}\frac{\delta_0^{\alpha_0/2}}{\delta_n^{\alpha_n/2}}\frac{|{\bm{B}}_n|^{1/2}}{|{\bm{B}}_0|^{1/2}}\frac{\Gamma(\alpha_n/2)}{\Gamma(\alpha_0/2)}$, where $\delta_n=\delta_0+({\bm{y}}-{\bm{X}}\hat{\bm{\beta}})^{\top}({\bm{y}}-{\bm{X}}\hat{\bm{\beta}})+(\hat{\bm{\beta}}-\bm{\beta}_0)^{\top}(({\bm{X}}^{\top}{\bm{X}})^{-1}+{\bm{B}}_0)^{-1}(\hat{\bm{\beta}}-\bm{\beta}_0)$.
+\end{block}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Linear regression: Conjugate family}
+	\begin{block}{Bayes factor}
+		The Bayes factor is
+		\begin{align*}
+			BF_{12}&=\frac{\frac{\delta_{10}^{\alpha_{10}/2}}{\delta_{1n}^{\alpha_{1n}/2}}\frac{|{\bm{B}}_{1n}|^{1/2}}{|{\bm{B}}_{10}|^{1/2}}\frac{\Gamma(\alpha_{1n}/2)}{\Gamma(\alpha_{10}/2)}}{\frac{\delta_{20}^{\alpha_{20}/2}}{\delta_{2n}^{\alpha_{2n}/2}}\frac{|{\bm{B}}_{2n}|^{1/2}}{|{\bm{B}}_{20}|^{1/2}}\frac{\Gamma(\alpha_{2n}/2)}{\Gamma(\alpha_{20}/2)}}.
+		\end{align*}
+	\end{block}
+\begin{block}{Posterior predictive}
+	The posterior predictive is a multivariate t distribution, ${\bm{y}}_0\mid {\bm{y}}\sim t\left({\bm{X}}_0\bm{\beta}_n,\frac{\delta_n({\bm{I}}_{N_0}+{\bm{X}}_0{\bm{B}}_n{\bm{X}}_0^{\top})}{\alpha_n},\alpha_n\right)$.
+\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: Demand of electricity}
+	
+We study in this example the determinants of the monthly demand for electricity by Colombian households. The data consists of information from 2103 households.
+\begin{align*}
+	\log(\text{Electricity}_i) & = \beta_1\log(\text{price}_i) + \beta_2\text{IndSocio1}_i + \beta_3\text{IndSocio2}_i \\
+	& + \beta_4\text{Altitude}_i + \beta_5\text{Nrooms}_i + \beta_6\text{HouseholdMem}_i\\
+	& + \beta_7\text{Children}_i + \beta_8\log(\text{Income}_i) + \beta_9 + \mu_i.
+\end{align*}
+
+We use a non-informative vague prior setting such that $\alpha_0=\delta_0=0.001$, $\bm{\beta}_0=\bm{0}$ and $\bm{B}_0=c_0\bm{I}_k$, where $c_0=1000$ and $k$ is the number of regressors. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Multivariate linear regression: Conjugate family}
+	\begin{block}{The model}
+		There are $N$-dimensional vectors ${\bm{y}}_m$, for $m = 1, 2, \dots, M$, such that ${\bm{y}}_m = {\bm{X}} \bm{\beta}_m + \bm{\mu}_m$. Here, ${\bm{X}}$ represents the set of common regressors, and $\bm{\mu}_m$ is the $N$-dimensional vector of stochastic errors for each equation. We assume that ${\bm{U}} = [\bm{\mu}_1 \ \bm{\mu}_2 \ \dots \ \bm{\mu}_M] \sim MN_{N,M}({\bm{0}}, {\bm{I}}_N, {\bm{\Sigma}})$, which is a matrix variate normal distribution where $\bm{\Sigma}$ is the covariance matrix of each $i$-th row of ${\bm{U}}$, for $i = 1, 2, \dots, N$, and we assume independence between the rows. Consequently, we have that $vec({\bm{U}}) \sim N_{N \times M}({\bm{0}}, \bm{\Sigma} \otimes {\bm{I}}_N)$.
+	\end{block}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Multivariate linear regression: Conjugate family}
+{\scriptsize{
+\begin{align*}
+	\underbrace{
+		\begin{bmatrix}
+			y_{11} & y_{12} & \dots & y_{1M}\\
+			y_{21} & y_{22} & \dots & y_{2M}\\
+			\vdots & \vdots & \dots & \vdots\\
+			y_{N1} & y_{N2} & \dots & y_{NM}\\
+	\end{bmatrix}}_{\bm{Y}}
+	&=
+	\underbrace{\begin{bmatrix}
+			x_{11} & x_{12} & \dots & x_{1K}\\
+			x_{21} & x_{22} & \dots & x_{2K}\\
+			\vdots & \vdots & \dots & \vdots\\
+			x_{N1} & x_{N2} & \dots & x_{NK}\\
+	\end{bmatrix}}_{\bm{X}}
+	\underbrace{
+		\begin{bmatrix}
+			\beta_{11} & \beta_{12} & \dots & \beta_{1M}\\
+			\beta_{21} & \beta_{22} & \dots & \beta_{2M}\\
+			\vdots & \vdots & \dots & \vdots\\
+			\beta_{K1} & \beta_{K2} & \dots & \beta_{KM}\\
+	\end{bmatrix}}_{\bm{B}}\\
+	&+
+	\underbrace{\begin{bmatrix}
+			\mu_{11} & \mu_{12} & \dots & \mu_{1M}\\
+			\mu_{21} & \mu_{22} & \dots & \mu_{2M}\\
+			\vdots & \vdots & \dots & \vdots\\
+			\mu_{N1} & \mu_{N2} & \dots & \mu_{NM}\\
+	\end{bmatrix}}_{\bm{U}}.
+\end{align*}
+}}
+
+Therefore, ${\boldsymbol{Y}}\sim N_{N\times M}({\boldsymbol{X}}{\boldsymbol{B}},\boldsymbol{\Sigma}\otimes {\boldsymbol{I}}_N)$.
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Multivariate linear regression: Conjugate family}
+The conjugate prior for this model is $\pi({\bm{B}},{\bm{\Sigma}})=\pi({\bm{B}}\mid {\bm{\Sigma}})\pi({\bm{\Sigma}})$ where ${\bm{B}}\mid {\bm \Sigma}\sim N_{K\times M}({\bm{B}}_{0},{\bm{V}}_{0},{\bm{\Sigma}})$ and ${\bm{\Sigma}}\sim IW({\bm{\Psi}}_{0},\alpha_{0})$.
+
+The posterior distribution is ${\bm{B}}\mid  {\bm \Sigma},{\bm{Y}}, {\bm{X}} \sim N_{K\times M}({\bm{B}}_n,{\bm{V}}_n,{\bm \Sigma})$ and ${\bm \Sigma}\mid  {\bm{Y}},{\bm{X}} \sim IW({\bm{\Psi}}_n,{\alpha}_n)$, where
+\begin{align*}
+	{\bm{S}}= & ({\bm{Y}}-{\bm{X}}\widehat{\bm{B}})^{\top}({\bm{Y}}-{\bm{X}}\widehat{\bm{B}})\\
+	\widehat{\bm{B}} = & ({\bm{X}}^{\top}{\bm{X}})^{-1}{\bm{X}}^{\top}{\bm{Y}}\\
+	{\bm{B}}_n = &({\bm{V}}_{0}^{-1}+{\bm{X}}^{\top}{\bm{X}})^{-1}({\bm{V}}_{0}^{-1}{\bm{B}}_{0}+{\bm{X}}^{\top}{\bm{Y}}),\\
+	{\bm{V}}_n = &({\bm{V}}_{0}^{-1}+{\bm{X}}^{\top}{\bm{X}})^{-1},\\
+	{\bm{\Psi}}_n= &{\bm{\Psi}}_{0}+{\bm{S}}+{\bm{B}}_{0}^{\top}{\bm{V}}_{0}^{-1}{\bm{B}}_{0}+\widehat{\bm{B}}^{\top}{\bm{X}}^{\top}{\bm{X}}\widehat{\bm{B}}-{\bm{B}}_n^{\top}{\bm{V}}_n^{-1}{\bm{B}}_n\\
+	\alpha_n= & N+\alpha_{0}
+\end{align*} 
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Multivariate linear regression: Conjugate family}
+	
+The marginal likelihood is
+$$p({\bm{Y}})=\frac{|{\bm{V}}_n|^{M/2}}{|{\bm{V}}_0|^{M/2}}\frac{|{\bm{\Psi}}_0|^{\alpha_0/2}}{|{\bm{\Psi}}_n|^{\alpha_n/2}}\frac{\Gamma_M(\alpha_n/2)}{\Gamma_M(\alpha_0/2)}\pi^{-MN/2}.$$
+	
+Given a matrix of regressors ${\bm{X}}_0$ for $N_0$ unobserved units, the predictive density of ${\bm{Y}}_0$ given ${\bm{Y}}$, $\pi({\bm{Y}}_0\mid {\bm{Y}})$ is a matrix t distribution $T_{N_0,M}(\alpha_n-M+1,{\bm{X}}_0{\bm{B}}_n,{\bm{I}}_{N_0}+{\bm{X}}_0{\bm{V}}_n{\bm{X}}_0^{\top},{\bm{\Psi}}_n)$.
+\end{frame}
+\begin{frame}
+	\frametitle{Example: Demand of utilities}
+Use the file \textit{Utilities.csv} to estimate a multivariate linear regression model where $\mathbf{Y}_i=\left[\log(\text{electricity}_i) \ \log(\text{water}_i) \ \log(\text{gas}_i)\right]$ as function of $\log(\text{electricity price}_i)$, $\log(\text{water price}_i)$, $\log(\text{gas price}_i)$, $\text{IndSocio1}_i$, $\text{IndSocio2}_i$, $\text{Altitude}_i$, $\text{Nrooms}_i$, $\text{HouseholdMem}_i$, $\text{Children}_i$, and $\log(\text{Income}_i)$, where electricity, water and gas are monthly consumption of electricity (kWh), water (m$^3$) and gas (m$^3$), and other definitions are given in the Example of Section 4.3. Omit households that do not consume any of the utilities in this exercise. 
+
+Set a non-informative prior framework, $\mathbf{B}_0=\left[0\right]_{11\times 3}$, $\mathbf{V}_0=1000 \mathbf{I}_{11}$, $\mathbf{\Psi}_0=1000 \mathbf{I}_{3}$ and $\alpha_0=3$, where we have $K=11$ (regressors plus intercept) and $M=3$ (equations) in this exercise.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example: Demand of utilities}
+\begin{enumerate}
+	\item Find the posterior mean estimates and the highest posterior density intervals at 95\% of $\mathbf{B}$ and $\mathbf{\Sigma}$.
+
+	\item Find the predictive distribution for the monthly demand of electricity, water and gas in the baseline specification of a household located in the lowest socioeconomic condition in a municipality located below 1000 meters above the sea level, 2 rooms, 3 members with children, a monthly income equal to USD 500, an electricity price equal to USD/kWh 0.15, a water price equal to USD/M$^3$ 0.70, and a gas price equal to USD/M$^3$ 0.75. 
+\end{enumerate} 
+\end{frame}
+
+%\begin{frame}[allowframebreaks]
+%	\frametitle{References}
+%		{\footnotesize
+%		\bibliographystyle{apalike}
+%		\bibliography{Biblio}}
+%\end{frame}
+
+\end{document}

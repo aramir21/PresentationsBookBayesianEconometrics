@@ -1,0 +1,1578 @@
+\documentclass[12pt, compress]{beamer}
+
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[spanish, english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[round, comma]{natbib}
+\usepackage{tabularx}
+\usepackage{tabulary, comment, algpseudocode, algorithm, bm}
+\usepackage{bbm}
+
+\usepackage{tikz}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} % or another version you have
+\usetikzlibrary{arrows.meta}
+
+\usepackage{etoolbox}
+
+% Patch to allow non-floating algorithmic in beamer
+\makeatletter
+\patchcmd{\ALG@beginalgorithmic}{\begin{trivlist}}{\begin{minipage}{\linewidth}\tiny}{}{}
+		\patchcmd{\ALG@endalgorithmic}{\end{trivlist}}{\end{minipage}}{}{}
+\makeatother
+
+% Reduce size of line numbers
+\algrenewcommand\alglinenumber[1]{\scriptsize #1}
+
+% Avoid floating in Beamer
+\makeatletter
+\setbeamertemplate{caption}[numbered]
+\newcommand{\nonfloatalgorithm}[1]{%
+	\par\vspace{\baselineskip}
+	\noindent\begin{minipage}{\linewidth}
+		\begin{algorithmic}[1] #1 \end{algorithmic}
+	\end{minipage}\par\vspace{\baselineskip}
+}
+\makeatother
+
+\let\Tiny \tiny
+%\setbeamertemplate{background canvas}{\includegraphics[width = \paperwidth, height = \paperheight]{EAFIT.pdf}} % Include an image as part of the background
+\setbeamertemplate{navigation symbols}{} % Getting rid of navigation symbols
+\useoutertheme{tree}
+\setbeamertemplate{footline}[frame number]
+
+%%%%%%%%%%%%%%%%%%%%%%%% PRESENTACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Bayesian Econometrics}
+\subtitle{Causal inference}
+\date{2025}
+\author[Andr\'e Ram\'irez H.]{\textbf{Andr\'es Ram\'irez-Hassan}}
+\institute[EAFIT]{\small{Universidad EAFIT\\School of Finance, Economics and Government}}
+%%%%%%%%%%%%%%%%%%%%%%% DOCUMENTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\decimalpoint
+%\justifying
+\begin{document}
+	
+	%\tikzstyle{every picture}+=[remember picture]
+	%\everymath{\displaystyle}
+	%\tikzstyle{na} = [baseline=-.5ex]
+	\maketitle
+	
+	% \begin{frame}
+		% \includegraphics[width= 0.15\linewidth]{escudo.eps}
+		% \maketitle
+		% \end{frame}
+	
+	
+	
+	\section*{Outline}
+	\begin{frame}
+		\textbf{\Large{Outline}}
+		\tableofcontents
+	\end{frame}
+	
+\section{Introduction}
+	
+\begin{frame}
+	\frametitle{Introduction}
+In this chapter, we present some Bayesian methods to perform inference on \textit{causal} effects. The point of departure is \textit{identification conditions} which are the set of assumptions that allow us to express the \textit{estimand} —the causal or statistical quantity of interest— as a unique function of the observable data distribution. These identification conditions are conceptually distinct from the econometric or statistical framework used to perform inference once those conditions are satisfied. In other words, the assumptions necessary for identification do not constrain whether we apply a Frequentist or a Bayesian approach for estimation and inference.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Introduction}
+Identification addresses the question: \textit{Can the causal effect be expressed as a function of the observable data distribution under certain assumptions?} Once the causal effect is identified in terms of the observed data distribution, we can proceed with statistical inference using either Frequentist methods or Bayesian methods. These inferential frameworks differ in how they estimate and quantify uncertainty but operate on the same identified causal effect. Thus, the identification assumptions are logically prior and independent of whether we adopt a Frequentist or a Bayesian inferential paradigm.
+\end{frame}
+
+\section{Identification}
+
+\begin{frame}
+	\frametitle{Identification}
+The aim is to identify the \textit{causal} or \textit{treatment effect} of a particular regressor or treatment on an outcome. For example, this could involve estimating the causal effect of a labor training program on individuals’ earnings or unemployment, or the price elasticity of demand. The starting point is the \textit{potential outcomes} framework \citep{rubin1974}, which defines a \textit{counterfactual scenario} describing what would happen to the outcome variable if the treatment status or level were different (commonly referred to as the \textit{Rubin causal model} \citep{holland1986statistics}).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Identification}
+Following the potential outcomes notation in the binary treatment case, let $D_i = 1$ and $D_i = 0$ indicate the treatment status, corresponding to \textit{treated} and \textit{control} units, respectively. The potential outcomes $Y_i(1)$ and $Y_i(0)$ represent the outcome for unit $i = 1, 2, \dots, N$ under treatment and control, respectively.
+
+The individual-level treatment effect is then defined as
+\begin{align*}
+	\tau_i = Y_i(1) - Y_i(0).
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Identification}
+The potential outcomes framework can also be extended to situations where the treatment is continuous \citep{imbens2014ivperspective}. In this case, let $Y_i(x_s)$ denote the outcome for unit $i$ under the counterfactual scenario where the treatment variable $X_s$ takes the value $x_s$. The ``treatment effect'' of changing $X_s$ from $x_s$ to $x_s'$, for example, the effect of increasing the price by 10\% on demand, is given by
+\begin{align*}
+	\beta_{si} = Y_i(x_s') - Y_i(x_s).
+\end{align*}
+When the change is infinitesimal, the causal effect can be expressed as a marginal effect:
+\begin{align*}
+	\beta_{si} =\frac{\partial Y_i(x_s)}{\partial x_s}.
+\end{align*}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Identification}
+\textit{The fundamental problem of causal inference} \citep{holland1986statistics}: it is impossible to observe the same unit under different \textit{treatment statuses} simultaneously. Consequently, we must learn about causal effects by comparing the outcomes of treated and untreated units.
+\end{frame}
+
+\section{Randomized controlled trial (RCT)}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+Two of the most relevant estimands in the causal inference literature are the average treatment effect (ATE),
+\[
+\text{ATE} = \mathbb{E}[Y_i(1) - Y_i(0)],
+\]
+and the average treatment effect on the treated (ATT),
+\[
+\text{ATT} = \mathbb{E}[Y_i(1) - Y_i(0) \mid D_i = 1].
+\]
+
+Note that the observed mean difference between treated and untreated units can be decomposed as:
+{\footnotesize{
+\begin{align*}
+\mathbb{E}[Y_i \mid D_i = 1] - \mathbb{E}[Y_i \mid D_i = 0] 
+& = \underbrace{\mathbb{E}[Y_i(1) - Y_i(0) \mid D_i = 1]}_{\text{ATT}}\\
+& + \underbrace{\Big( \mathbb{E}[Y_i(0) \mid D_i = 1] - \mathbb{E}[Y_i(0) \mid D_i = 0]\Big)}_{\textit{Selection Bias}}.
+\end{align*}
+}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+Note that if we assume that \textit{assignment to treatment is random},
+\[
+\{ Y_i(1), Y_i(0) \} \perp D_i,
+\]
+then the selection bias becomes zero,
+\[
+\mathbb{E}[Y_i(0) \mid D_i = 1] - \mathbb{E}[Y_i(0) \mid D_i = 0] = 0,
+\]
+which means there is no selection bias under random assignment.
+
+Moreover, under random assignment, ATT equals ATE:
+\[
+\tau = \underbrace{\mathbb{E}[Y_i(1)\mid D_i=1]-\mathbb{E}[Y_i(0)\mid D_i=1]}_{\text{ATT}} 
+= \underbrace{\mathbb{E}[Y_i(1)-Y_i(0)]}_{\text{ATE}}.
+\]
+Consequently,
+\begin{equation*}
+	\tau=\mathbb{E}[Y_i \mid D_i = 1] - \mathbb{E}[Y_i \mid D_i = 0].
+\end{equation*}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+\textit{Randomized controlled trials} (RCTs) are characterized by \textit{random assignment to treatment}. The identification of causal effects in RCTs additionally relies on two key assumptions:
+\begin{enumerate}
+    \item \textit{overlap}, which requires that every unit has a positive probability of being assigned to both treatment and control groups ($0 < P(D_i = 1) < 1$), and the
+    \item \textit{Stable Unit Treatment Value Assumption} (SUTVA). The latter consists of two components: (i) \textit{no interference}, meaning one unit’s potential outcome is unaffected by another unit’s treatment, and (ii) \textit{consistency}, meaning the observed outcome equals the potential outcome corresponding to the received treatment. 
+\end{enumerate} 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+We can represent the causal mechanism in an RCT using \textit{causal diagrams} \citep{pearl1995causal,pearl2018book}. In particular, we can depict the causal mechanism using a \textit{Directed Acyclic Graph (DAG)}, which is a graphical representation of a set of variables and their assumed causal relationships.
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[->,>=Stealth,shorten >=1pt,node distance=2.5cm,
+		thick,main node/.style={circle,draw,minimum size=7mm}]
+		\node[main node] (D) {$D$};
+		\node[main node] (Y) [right of=D] {$Y$};
+		
+		\path (D) edge (Y)
+		(D) edge (Y);
+	\end{tikzpicture}
+	\caption{Directed Acyclic Graph (DAG) implied by a Randomized Controlled Trial (RCT).}
+	\label{DAG1}
+\end{figure} 
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+The counterfactual representation of the DAG, known as the \textit{Single-World Intervention Graph} (SWIG)
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[->,>=Stealth,shorten >=1pt,node distance=2.5cm,
+		thick,main node/.style={circle,draw,minimum size=7mm}]
+		% Nodes
+		\node[main node] (Dfix) {$D = d$};    % Fixed intervention
+		\node[main node] (Y) [right of=Dfix] {$Y(d)$}; % Counterfactual outcome
+		\node[main node] (Dnat) [below of=Dfix, node distance=1.5cm] {$D$}; % Natural value (irrelevant)
+		
+		% Edges
+		\path (Dfix) edge[dashed] (Y); % Dashed arrow
+	\end{tikzpicture}
+	\caption{Single-World Intervention Graph (SWIG) for intervention $do(D=d)$: $Y$ is replaced by the counterfactual $Y(d)$, and $D$ is split into the fixed value $D=d$ and its natural value $D$. The dashed arrow indicates the fixed causal assignment.}
+	\label{SWIG1}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+Note that we can express the observed outcome in terms of the potential outcomes as:
+\[
+Y_i = [Y_i(1) - Y_i(0)] D_i + Y_i(0),
+\]
+which shows that the observed outcome equals the control potential outcome plus the treatment effect if treated.
+
+Under the assumption of a constant treatment effect and a linear \textit{Conditional Expectation Function} (CEF) $\mathbb{E}[Y_i\mid D_i]$, this relationship can be represented as a linear regression model \citep{angrist2009mostly}:
+\[
+Y_i = \underbrace{\beta_0}_{\mathbb{E}[Y_i(0)]} 
++ \underbrace{\tau}_{\text{constant treatment effect}} D_i 
++ \underbrace{\mu_i}_{Y_i(0) - \mathbb{E}[Y_i(0)]},
+\]
+where $\tau$ represents the common treatment effect across all units.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Randomized controlled trial (RCT)}
+Under random assignment, we have
+\begin{equation*}
+	\mathbb{E}[\mu_i \mid D_i] = \mathbb{E}[Y_i(0) \mid D_i] - \mathbb{E}[Y_i(0)] = \mathbb{E}[Y_i(0)] - \mathbb{E}[Y_i(0)] = 0,
+\end{equation*}
+that is, the error term is \textit{mean-independent of treatment status}. This implies that a regression of $Y_i$ on $D_i$ consistently estimates the causal effect under random assignment.
+\end{frame}
+
+\section{Conditional independence assumption (CIA)}
+\begin{frame}
+	\frametitle{Conditional independence assumption (CIA)}
+In an RCT, the assignment mechanism is determined by chance, whereas in observational studies it is driven by choice.
+
+The \textit{conditional independence assumption} (CIA) holds: the potential outcomes are independent of the treatment status, conditional on a set of observed  \textit{pre-treatment variables}:
+\[
+\{ Y_i(1), Y_i(0) \} \perp D_i \mid \mathbf{X}_i.
+\]
+Conditional on the \textit{pre-treatment variables} $\mathbf{X}_i$, treatment assignment is as good as random. This property is known as \textit{unconfoundedness given} $\mathbf{X}_i$. In addition, for all possible values of $\mathbf{X}_i$, there is a positive probability of receiving each treatment level ($0 < P(D_i = 1 \mid \mathbf{X}_i) < 1$).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conditional independence assumption (CIA)}
+Note that under the CIA,
+\begin{align*}
+	\text{ATE} &= \mathbb{E}[Y_i(1)] - \mathbb{E}[Y_i(0)] \\
+	&= \mathbb{E}_{\mathbf{X}}\left\{ \mathbb{E}[Y_i(1)\mid \mathbf{X}_i] - \mathbb{E}[Y_i(0)\mid \mathbf{X}_i] \right\} \\
+	&= \mathbb{E}_{\mathbf{X}}\left\{ \mathbb{E}[Y_i(1)\mid \mathbf{X}_i, D_i=1] - \mathbb{E}[Y_i(0)\mid \mathbf{X}_i, D_i=0] \right\} \\
+	&= \mathbb{E}_{\mathbf{X}}\left\{ \mathbb{E}[Y_i\mid \mathbf{X}_i, D_i=1] - \mathbb{E}[Y_i\mid \mathbf{X}_i, D_i=0] \right\} \\
+	&= \mathbb{E}_{\mathbf{X}}\left\{ \tau(\mathbf{X}_i) \right\},
+\end{align*}
+and
+\[
+\tau(\mathbf{X}_i) = \mathbb{E}[Y_i \mid \mathbf{X}_i, D_i=1] - \mathbb{E}[Y_i \mid \mathbf{X}_i, D_i=0]
+\]
+is the \textit{conditional average treatment effect} (CATE) at covariate value $\mathbf{X}_i$, which captures treatment effect heterogeneity across different values of $\mathbf{X}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conditional independence assumption (CIA)}
+Under the CIA, we can identify the causal effect of $D$ on $Y$ by adjusting for $\mathbf{X}$ because this causal structure satisfies the \textit{back-door criterion}. This criterion states that a set of variables $\mathbf{X}$ satisfies the condition for identifying the effect of $D$ on $Y$ if no variable in $\mathbf{X}$ is a descendant of $D$ and $\mathbf{X}$ blocks every back-door path from $D$ to $Y$. A \textit{back-door path} is any path from $D$ to $Y$ that begins with an arrow pointing into $D$.
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[->,>=Stealth,shorten >=1pt,node distance=2.5cm,
+		thick,main node/.style={circle,draw,minimum size=7mm}]
+		\node[main node] (X) {$\mathbf{X}$};
+		\node[main node] (D) [right of=X] {$D$};
+		\node[main node] (Y) [right of=D] {$Y$};
+		
+		\path (X) edge (D)
+		(X) edge[bend left=20] (Y)
+		(D) edge (Y);
+	\end{tikzpicture}
+	\caption{Directed Acyclic Graph (DAG) implied by the Conditional Independence Assumption (CIA).}
+	\label{DAG2}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conditional independence assumption (CIA)}
+The simple regression framework of the previous section can be extended to a multiple linear regression model by including the \textit{pre-treatment variables}; therefore, if the CEF is linear in the treatment and pre-treatment variables:
+\begin{align*}
+	Y_i = \beta_0 + \tau D_i + \mathbf{X}_i^{\top}\boldsymbol{\beta} + \mu_i.
+\end{align*}
+Note that, by assumption in RCTs, $D_i$ and $\mathbf{X}_i$ are independent. Thus, the identification of $\tau$ is not affected under random assignment; however, including $\mathbf{X}_i$ helps explain part of the variability in $Y_i$, thereby improving the precision of the estimates.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conditional independence assumption (CIA): Birth-weight ``paradox", collider bias}
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[
+		node distance=2cm,
+		thick,
+		main/.style={circle, draw, minimum size=8mm},
+		>={Stealth}
+		]
+		
+		% Nodes
+		\node[main] (S) {$S$};
+		\node[main] (B) [below right=1.2cm and 1.8cm of S] {$B$};
+		\node[main, dashed] (U) [below left=1.2cm and 1.8cm of B] {$U$};
+		\node[main] (Y) [right=1cm of B] {$Y$};
+		
+		% Arrows
+		\draw[->] (S) -- (B);
+		\draw[->] (S) -- (Y);
+		\draw[->] (B) -- (Y);
+		\draw[->] (U) -- (B);
+		\draw[->] (U) -- (Y);
+		
+	\end{tikzpicture}
+	\caption{DAG illustrating the birth-weight paradox: $S$ (smoking), $B$ (birth weight), $Y$ (infant mortality), and $U$ (other unobserved health factors).}
+	\label{fig:coll}
+\end{figure}	
+\end{frame}
+
+\section{Instrumental variables}
+
+\begin{frame}
+	\frametitle{Instrumental variables}
+\begin{itemize}
+	\item \textit{Relevance}, meaning the instruments are correlated with the treatment:
+	\[
+	\mathbf{Z}_i \not\perp D_i.
+	\]
+	\item \textit{Exogeneity}, which in the linear model requires:
+	\begin{equation*}
+		\mathbb{E}[\mu_i \mid \mathbf{Z}_i] = 0,
+	\end{equation*}
+	and, in terms of potential outcomes, entails:
+	\begin{itemize}
+		\item \textit{Exclusion restriction}: instruments affect the outcome only through the treatment:
+		\begin{align*}
+		    Y_i(D_i = d, \mathbf{Z}_i = \mathbf{z}) & = Y_i(D_i = d, \mathbf{Z}_i = \mathbf{z}') = Y_i(D_i = d),\\
+            &d \in \{0,1\},
+		\end{align*}
+			
+		\item \textit{Marginal exchangeability}: instruments are independent of the potential outcomes:
+		\[
+		\mathbf{Z}_i \perp \{ Y_i(1), Y_i(0) \}.
+		\]
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+However, the two conditions for instruments only imply \textit{partial identification} of the Local Average Treatment Effect (LATE; see below, and \citep{Manski1989,manski1990nonparametric,manski1995identification,manski2003partial} for detailed treatments of partial identification). Thus, it is necessary to impose a third condition to achieve \textit{point identification} of a particular treatment effect using IV. This condition is 
+\begin{itemize}
+    \item \textit{monotonicity} which asserts that the instrument moves all units’ treatment decisions in the same direction, that is,
+\[
+D_i(1)\geq D_i(0), i=1,2,\dots,N,
+\]
+assuming a binary instrument $Z_i=\left\{0,1\right\}$.  
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Instrumental variables}
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[->,>=Stealth,shorten >=1pt,node distance=2.5cm,
+		thick,main node/.style={circle,draw,minimum size=7mm}]
+		% Nodes
+		\node[main node, dashed] (U) {$\mathbf{U}$};
+		\node[main node] (D) [right of=X] {$D$};
+		\node[main node] (Y) [right of=D] {$Y$};
+		\node[main node] (Z) [below of=D, node distance=2cm] {$Z$};
+		
+		% Edges
+		\path (Z) edge (D)
+		(U) edge[bend left=20] (Y)
+		(D) edge (Y)
+		(U) edge (D);
+	\end{tikzpicture}
+	\caption{Directed Acyclic Graph (DAG) showing an instrumental variable $Z$ used to identify the causal effect of $D$ on $Y$ when some confounders $\mathbf{U}$ (dashed) are unobserved or measured with error.}
+	\label{DAG4}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Instrumental variables}
+    {\small{
+\begin{table}[ht]
+	\centering
+	\caption{Distribution of compliance types by instrument and treatment}\label{tab:2x2}
+	\begin{tabular}{lcc}
+		\hline
+		& \multicolumn{2}{c}{\textbf{Treatment}} \\ 
+		\cline{2-3}
+		\textbf{Instrument} & $D_i = 0$ & $D_i = 1$ \\ 
+		\hline
+		$Z_i=0$  & Compliers, Never-takers & Always-takers \\[0.25em]
+		$Z_i=1$  & Never-takers & Compliers, Always-takers \\ 
+		\hline
+	\end{tabular}
+\end{table}
+}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Instrumental variables}
+\begin{align*}
+	\tau_{LATE} 
+	&= \mathbb{E}[Y_i(1)-Y_i(0)\mid D_i(1)=1, D_i(0)=0]\\
+    &=\frac{\mathbb{E}[Y_i \mid Z_i = 1] - \mathbb{E}[Y_i \mid Z_i = 0]}{\mathbb{E}[D_i \mid Z_i = 1] - \mathbb{E}[D_i \mid Z_i = 0]}.
+\end{align*}
+
+The IV estimand represents the ratio of the intention-to-treat effect on the outcome to the intention-to-treat effect on the treatment (i.e., the proportion of compliers). The instrument induces random variation in treatment: the numerator captures how outcomes respond to the instrument, and the denominator captures how treatment responds to the instrument. Dividing the two isolates the causal effect for compliers.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Instrumental variables: A simple setting for point and set identified LATE}
+\begin{table}[ht]
+	\centering
+	\caption{Distribution of units by type, instrument, treatment, and outcomes}
+	\label{tab:types}
+	\begin{tabular}{lcccc}
+		\hline
+		Type & $Z_{obs}$ & $D_{obs}$ & $Y_{obs}$ & Units \\
+		\hline
+		Compliers, Never-takers & 0 & 0 & 3 & 50 \\
+		Never-takers   & 1 & 0 & 4 & 20  \\
+		Compliers, Always-takers & 1 & 1 & 7 & 100  \\
+		 Always-takers   & 0 & 1 & 5 & 30  \\
+		\hline
+	\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{Instrumental variables: Effects of vitamin A supplements on children's survival}
+
+\begin{table}[h!]
+\centering
+\caption{Effects of vitamin A supplements on children's survival \citep{imbens1997bayesian}}
+\label{tab:observed_data}
+
+\resizebox{1\textwidth}{!}{%
+\begin{tabular}{lcccr}
+\hline
+\multirow{2}{*}{\textbf{Type}} & \textbf{Assignment} & \textbf{Treatment} & \textbf{Survival} & \textbf{Units} \\
+& $Z_{\text{obs},i}$ & $D_{\text{obs},i}$ & $Y_{\text{obs},i}$ & 23,682 \\
+\hline
+Complier or never-taker & 0 & 0 & 0 & 74 \\
+Complier or never-taker & 0 & 0 & 1 & 11,514 \\
+Never-taker & 1 & 0 & 0 & 34 \\
+Never-taker & 1 & 0 & 1 & 2,385 \\
+Complier & 1 & 1 & 0 & 12 \\
+Complier & 1 & 1 & 1 & 9,663 \\
+\hline
+\end{tabular}
+} % end resizebox
+
+\end{table}
+\end{frame}
+
+\section{Difference-in-differences design (DiD)}
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+Following \cite{roth2023whats}, we consider a setting with two time periods, \( t = 1, 2 \), and two groups: a treated group (\( D_i = 1 \)) that receives the treatment between periods \( t = 1 \) and \( t = 2 \), and a control group that never receives the treatment (\( D_i = 0 \)). We observe outcomes \( Y_{it} \) and treatment status \( D_i \) for units \( i = 1, 2, \dots, N \), assuming a balanced panel data structure.
+
+Let \( Y_{it}(1) \) denote the potential outcome for unit \( i \) in period \( t \) if it is untreated in the first period and treated in the second, while \( Y_{it}(0) \) denotes the potential outcome if it is never treated. In the DiD framework, the primary estimand of interest is the average treatment effect on the treated (ATT),
+\[
+\tau_{2} = \mathbb{E}[Y_{i2}(1) - Y_{i2}(0) \mid D_i = 1].
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+    \begin{itemize}
+        \item \textit{Parallel trends:}
+\begin{equation*}
+	\mathbb{E}[Y_{i2}(0) - Y_{i1}(0) \mid D_i = 1] = \mathbb{E}[Y_{i2}(0) - Y_{i1}(0) \mid D_i = 0],
+\end{equation*}
+which states that, in the absence of treatment, the average change in outcomes for the treated and control groups would have evolved similarly over time.
+
+\item \textit{No anticipation effects:}
+\begin{equation*}
+	\mathbb{E}[Y_{i1}(0)\mid D_i=1] = \mathbb{E}[Y_{i1}(1)\mid D_i=1],
+\end{equation*}
+meaning that the treatment has no causal effect prior to its implementation.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=10cm,height=7cm,
+			xmin=-0.6, xmax=1.5, ymin=0.3, ymax=1.3,
+			axis lines=left,
+			grid=both, grid style={gray!20},
+			xlabel={},
+			ylabel={Outcome ($Y_{it}$)},
+			xtick={0.2, 1}, xticklabels={$t=1$, $t=2$},
+			ytick={0.5, 0.7, 1, 1.2},
+			clip=false
+			]
+			% Sharp RD step:
+			\addplot[dashed] coordinates {(-0.6,0.5) (1,0.5)};
+			\addplot[dashed] coordinates {(-0.6,0.7) (0.2,0.7)};
+			
+			\addplot[black, very thick] coordinates {(0.2,0.7) (1,0.6)};
+			\addplot[dashed] coordinates {(0.2,0.7) (1,0.5)};
+			\draw[<->] (axis cs:0.2,0.7) -- (axis cs:0.2,0.5);
+			\node[red] at (axis cs:-0.2,0.65) {\tiny Parallel trends};
+			\node[black] at (axis cs:-0.2,0.6) {\tiny $\mathbb{E}[Y_{i2}(0) - Y_{i1}(0) \mid D_i = 1] = $};
+			\node[blue] at (axis cs:-0.2,0.55) {\tiny $ \mathbb{E}[Y_{i2}(0) - Y_{i1}(0) \mid D_i = 0]$};
+			
+			\addplot[dashed] coordinates {(-0.6,1) (1,1)};
+			\addplot[dashed] coordinates {(-0.6,1.2) (0.2,1.2)};
+			
+			\addplot[black, very thick] coordinates {(0.2,1.2) (1,1)};
+			\draw[<->] (axis cs:0.2,1.2) -- (axis cs:0.2,1);
+			\node[blue] at (axis cs:-0.2,1.1) {\tiny $\mathbb{E}[Y_{i2}(0) - Y_{i1}(0) \mid D_i = 0]$};
+			\node[black] at (axis cs:0.2,1.22) {\tiny $\mathbb{E}[Y_{i1}(0) \mid D_i = 0]$};
+			\node[black] at (axis cs:1.25,1.02) {\tiny $\mathbb{E}[Y_{i2}(0) \mid D_i = 0]$};
+			\node[red] at (axis cs:0.2,0.72) {\tiny No anticipation: $\mathbb{E}[Y_{i1}(1) \mid D_i = 1]=\mathbb{E}[Y_{i1}(0) \mid D_i = 1]$};
+			\node[black] at (axis cs:1.22,0.62) {\tiny $\mathbb{E}[Y_{i2}(1) \mid D_i = 1]$};
+			\draw[<->, red] (axis cs:1,0.6) -- (axis cs:1,0.5);
+			\node[red] at (axis cs:1.4,0.555) {\tiny $ATT=\mathbb{E}[Y_{i2}(1) \mid D_i = 1]-$};
+			\node[red] at (axis cs:1.482,0.525) {\tiny $\mathbb{E}[Y_{i2}(0) \mid D_i = 1]$};
+			\node[red] at (axis cs:0.6,0.47) {\tiny $\mathbb{E}[Y_{i2}(0) \mid D_i = 1]=\mathbb{E}[Y_{i1} \mid D_i = 1] + \mathbb{E}[Y_{i2} - Y_{i1} \mid D_i = 0]$};
+			
+			\fill[black] (axis cs:0.2,1.2) circle (2pt);
+			\fill[black] (axis cs:1,1) circle (2pt);
+			\fill[black] (axis cs:0.2,0.7) circle (2pt);
+			\fill[black] (axis cs:1,0.6) circle (2pt);
+			\fill[red] (axis cs:1,0.5) circle (2pt);
+			%\draw[black, fill=black] (0.7,1) circle (2pt);
+			%\draw[black, fill=black] (0.2,0.7) circle (2pt);
+			%\draw[black, fill=black] (0.7,0.6) circle (2pt);
+			% Cutoff (vertical dashed line)
+			%\addplot[black, densely dashed, very thick] coordinates {(0,0) (0,1.02)};
+			
+			% Labels
+			%\node[black] at (axis cs:-0.52,0.92) {\large Assigned to Control};
+			%\node[black]  at (axis cs: 0.52,0.92) {\large Assigned to Treatment};
+			
+			% Arrow and text to mark "Cutoff"
+			%\draw[->] (axis cs:0.28,0.2) -- (axis cs:0.02,0.2);
+			%\node[anchor=west] at (axis cs:0.3,0.2) {Cutoff};
+			
+			% Bracket showing jump size (optional)
+			%\draw[<->, thick] (axis cs:0.04,0.0) -- (axis cs:0.04,1);
+			%\node[anchor=west] at (axis cs:0.06,0.50) {$\Delta P$};
+		\end{axis}
+	\end{tikzpicture}
+	%\caption{Difference-in-Differences: Identification strategy}
+	\label{Fig:DiD}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+The ATT is the difference in outcome differences between treated and control units,
+\begin{equation}\label{eq:DiD}
+\tau_2 = \mathbb{E}[Y_{i2} - Y_{i1} \mid D_i = 1] - \mathbb{E}[Y_{i2} - Y_{i1} \mid D_i = 0],
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+En regression forms:
+\[
+Y_{it} = \alpha_i + \phi_t + \tau_2 D_i + \mu_{it},
+\]
+which implies
+\[
+Y_{i2} - Y_{i1} = (\phi_2 - \phi_1) + \tau_2 D_i + (\mu_{i2} - \mu_{i1}).
+\]
+The two-way fixed effects (TWFE) model
+\[
+Y_{it} = \alpha + \alpha_i + \phi_t + \tau_2 \,\big[ D_i \cdot \mathbbm{1}(t = 2) \big] + \epsilon_{it},
+\]
+where $\mathbbm{1}(t = 2)$ is an indicator for the post-treatment period \citep{roth2023whats}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+The DiD framework can be extended to condition on covariates. In this case, we assume that the underlying identification assumptions are more plausible among units that are similar in terms of observed characteristics. Thus, the identification assumptions are stated conditional on the exogenous variables.
+
+Linear regression can be used. However, alternative \textit{semiparametric} and \textit{nonparametric} approaches, such as \textit{outcome regression adjustment}, \textit{inverse probability weighting}, and \textit{doubly robust} estimators (which combine the first two), are often preferable because they yield consistent estimates under conditional parallel trends without requiring a linear conditional expectation function (CEF).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Difference-in-differences design (DiD): two-group and two-period ($2\times2$) setup}
+A point to be aware of when performing DiD identification strategies is that the parallel trends assumption is generally not robust to functional form transformations of the outcome.
+
+Note that the parallel trends and no anticipation assumptions in DiD are not fundamentally testable, since they are identifying restrictions about counterfactual outcomes that are never observed. However, we can examine pre-treatment dynamics to assess their plausibility.
+\end{frame}
+
+\section{Regression discontinuity design (RD)}
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD)}
+Identification in RD relies on a \textit{running variable} $Z_i$, also known as the \textit{forcing}, \textit{index}, or \textit{score variable}, which determines treatment assignment, either completely or partially, depending on whether a unit lies on either side of a known cutoff $c$. The running variable may be associated with the potential outcomes, but this association is assumed to be smooth at $c$.
+\begin{align*}
+    \Delta &= \lim_{z \downarrow c}\Pr(D_i=1\mid Z_i=z)-\lim_{z \uparrow c}\Pr(D_i=1\mid Z_i=z)\\
+&=
+\begin{cases}
+	1, & \text{sharp RD},\\[2pt]
+	\in(0,1), & \text{fuzzy RD}.
+\end{cases}
+\end{align*}
+Here $\lim_{z \downarrow c}$ and $\lim_{z \uparrow c}$ denote the right (approach from above) and left (approach from below) limits, respectively.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Sharp}
+\[
+D_i = \mathbbm{1}\{Z_i \ge c\},
+\]
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=10cm,height=5.5cm,
+			xmin=-1, xmax=1, ymin=0, ymax=1.05,
+			axis lines=left,
+			grid=both, grid style={gray!20},
+			xlabel={Running variable ($Z$)},
+			ylabel={\small{Conditional probability of treatment}},
+			xtick={0}, xticklabels={$c$},
+			ytick={0,0.5,1},
+			clip=false
+			]
+			% Sharp RD step:
+			\addplot[very thick] coordinates {(-1,0) (0,0)};
+			\addplot[very thick]  coordinates {(0,1) (1,1)};
+			
+			% Cutoff (vertical dashed line)
+			\addplot[black, densely dashed, very thick] coordinates {(0,0) (0,1.02)};
+			
+			% Labels
+			\node[black] at (axis cs:-0.52,0.92) {\small Assigned to Control};
+			\node[black]  at (axis cs: 0.52,0.92) {\small Assigned to Treatment};
+			
+			% Arrow and text to mark "Cutoff"
+			\draw[->] (axis cs:0.28,0.2) -- (axis cs:0.02,0.2);
+			\node[anchor=west] at (axis cs:0.3,0.2) {Cutoff};
+			
+			% Bracket showing jump size (optional)
+			\draw[<->, thick] (axis cs:0.04,0.0) -- (axis cs:0.04,1);
+			\node[anchor=west] at (axis cs:0.06,0.50) {$\Delta P$};
+		\end{axis}
+	\end{tikzpicture}
+\caption{Sharp regression discontinuity design: Conditional probability of treatment}
+\label{Fig:SRDD}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Sharp}
+\[
+\tau_{\text{SRD}}
+= \lim_{z \downarrow c}\mathbb{E}[Y_i\mid Z_i=z]
+- \lim_{z \uparrow c}\mathbb{E}[Y_i\mid Z_i=z],
+\]
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=10cm,height=6cm,
+			xmin=-1, xmax=1, ymin=0, ymax=1.05,
+			axis lines=left,
+			grid=both, grid style={gray!20},
+			xlabel={Running variable ($Z$)},
+			ylabel={$\mathbb{E}[Y(1)\mid Z],\ \mathbb{E}[Y(0)\mid Z]$},
+			xtick={0}, xticklabels={$c$},
+			ytick=\empty,
+			clip=false
+			]
+			
+			% --- Choose smooth functions for illustration ---
+			% E[Y(0)|X]: observed (solid) for X<c, counterfactual (dashed) for X>=c
+			\addplot[black, very thick, domain=-1:0, samples=200] {0.35 + 0.1*x + 0.05*x^2};
+			\addplot[black, very thick, dashed, domain=0:1, samples=200] {0.35 + 0.1*x + 0.05*x^2};
+			
+			% E[Y(1)|X]: counterfactual (dashed) for X<c, observed (solid) for X>=c
+			\addplot[black, very thick, dashed, domain=-1:0, samples=200] {0.62 + 0.06*x + 0.08*x^2};
+			\addplot[black, very thick, domain=0:1, samples=200] {0.62 + 0.06*x + 0.08*x^2};
+			
+			% --- Cutoff (vertical dashed line) ---
+			\addplot[black, densely dashed, very thick] coordinates {(0,0) (0,1.02)};
+			
+			% --- Points at the cutoff (mu_- and mu_+) ---
+			\filldraw[black] (axis cs:0,0.35) circle (2pt);  % mu_-
+			\filldraw[black] (axis cs:0,0.62) circle (2pt);  % mu_+
+			
+			% Labels mu_- and mu_+
+			% \node[anchor=east] at (axis cs:-0.02,0.35) {$\mu_-$};
+			% \node[anchor=east] at (axis cs:-0.02,0.62) {$\mu_+$};
+			
+			% --- Jump size tau_SRD ---
+			\draw[<->, thick] (axis cs:0.06,0.35) -- (axis cs:0.06,0.62);
+			\node[anchor=west] at (axis cs:0.07,0.485) {$\tau_{\text{SRD}}$};
+			
+			% --- Arrow + label "Cutoff" ---
+			\draw[->] (axis cs:0.28,0.08) -- (axis cs:0.02,0.08);
+			\node[anchor=west] at (axis cs:0.30,0.08) {Cutoff};
+			
+			% --- Curve labels ---
+			\node[black, anchor=west]  at (axis cs:0.45,0.80) {$\mathbb{E}[Y(1)\mid Z]$};
+			\node[black, anchor=west] at (axis cs:0.45,0.30) {$\mathbb{E}[Y(0)\mid Z]$};
+			
+		\end{axis}
+	\end{tikzpicture}
+	\caption{RD treatment effect in a sharp RD design. Solid segments are observed on each side of $c$; dashed segments are counterfactual \cite{cattaneo2019practical}.}
+	\label{fig:SRD-muplus-muminus}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy}
+    \begin{align*}
+	0 \;<\; \lim_{z \downarrow c} \Pr(D_i=1 \mid Z_i=z) \;-\; \lim_{z \uparrow c} \Pr(D_i=1 \mid Z_i=z) \;<\; 1.
+\end{align*}
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=8cm,height=5.5cm,
+			xmin=-1, xmax=1, ymin=0, ymax=1.05,
+			axis lines=left,
+			grid=both, grid style={gray!20},
+			xlabel={Running variable ($Z$)},
+			ylabel={\footnotesize Conditional probability of treatment},
+			xtick={0}, xticklabels={$c$},
+			ytick={0,0.5,1},
+			clip=false
+			]
+			% Fuzzy RD: probabilities below/above cutoff
+			\addplot[very thick] coordinates {(-1,0.20) (0,0.30)};  % left limit p^-
+			\addplot[very thick] coordinates {(0,0.80) (1,0.90)};   % right limit p^+
+			
+			% Open circles at the jump (left/right limits at c)
+			\draw[thick, fill=white] (axis cs:0,0.30) circle (2.2pt);
+			\draw[thick, fill=white] (axis cs:0,0.80) circle (2.2pt);
+			
+			% Cutoff (vertical dashed line)
+			\addplot[black, densely dashed, very thick] coordinates {(0,0) (0,1.02)};
+			
+			% Labels for regions
+			\node[black] at (axis cs:-0.52,0.92) {\footnotesize Assigned to Control};
+			\node[black] at (axis cs: 0.52,0.92) {\footnotesize Assigned to Treatment};
+			
+			% Arrow and text to mark "Cutoff"
+			\draw[->] (axis cs:0.28,0.12) -- (axis cs:0.02,0.12);
+			\node[anchor=west] at (axis cs:0.30,0.12) {Cutoff};
+			
+			% Bracket showing jump size (optional)
+			\draw[<->, thick] (axis cs:0.04,0.30) -- (axis cs:0.04,0.80);
+			\node[anchor=west] at (axis cs:0.06,0.50) {$\Delta P$};
+			
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Fuzzy regression discontinuity design: Conditional probability of treatment}
+	\label{Fig:FRDD}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy}
+The identification assumptions are: 
+
+\textit{1. Continuity of the potential outcome regression functions}, particularly at \(c\).
+
+\textit{2. A nontrivial first stage},
+\(\lim_{z \downarrow c}\mathbb{E}[D_i\mid Z_i=z]-\lim_{z \uparrow c}\mathbb{E}[D_i\mid Z_i=z]\neq 0\),
+
+and 
+
+\textit{3. Monotonicity}: \(D_i(z)\) is non-increasing in \(z\) at \(z=c\).
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy}
+\begin{align*}
+\tau_{\text{FRD}}
+&=
+\frac{\lim_{z \downarrow c}\mathbb{E}[Y_i\mid Z_i=z]-\lim_{z \uparrow c}\mathbb{E}[Y_i\mid Z_i=z]}
+{\lim_{z \downarrow c}\mathbb{E}[D_i\mid Z_i=z]-\lim_{z \uparrow c}\mathbb{E}[D_i\mid Z_i=z]}.
+\end{align*}
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=10cm,height=6cm,
+			xmin=-1, xmax=1, ymin=0, ymax=1.05,
+			axis lines=left,
+			grid=both, grid style={gray!20},
+			xlabel={Running variable ($Z$)},
+			ylabel={$\mathbb{E}[Y\mid Z]$},
+			xtick={0}, xticklabels={$c$},
+			ytick=\empty,
+			clip=false
+			]
+			
+			% --- Choose smooth functions for illustration ---
+			% E[Y(0)|X]: observed (solid) for X<c, counterfactual (dashed) for X>=c
+			\addplot[black, very thick, dashed, domain=-1:0, samples=200] {0.35 + 0.1*x + 0.05*x^2};
+			\addplot[black, very thick, dashed, domain=0:1, samples=200] {0.35 + 0.1*x + 0.05*x^2};
+			
+			% E[Y(1)|X]: counterfactual (dashed) for X<c, observed (solid) for X>=c
+			\addplot[black, very thick, dashed, domain=-1:0, samples=200] {0.62 + 0.06*x + 0.08*x^2};
+			\addplot[black, very thick, dashed, domain=0:1, samples=200] {0.62 + 0.06*x + 0.08*x^2};
+			
+			% E[Y(1)|X]: counterfactual (dashed) for X<c, observed (solid) for X>=c
+			\addplot[black, very thick, domain=-1:0, samples=200] {0.4 + 0.09*x + 0.06*x^2};
+			\addplot[black, very thick, domain=0:1, samples=200] {0.58 + 0.07*x + 0.07*x^2};
+			
+			% --- Cutoff (vertical dashed line) ---
+			\addplot[black, densely dashed, very thick] coordinates {(0,0) (0,1.02)};
+			
+			% --- Points at the cutoff (mu_- and mu_+) ---
+			\filldraw[black] (axis cs:0,0.4) circle (2pt);  % mu_-
+			\filldraw[black] (axis cs:0,0.58) circle (2pt);  % mu_+
+			
+			% Labels mu_- and mu_+
+			% \node[anchor=east] at (axis cs:-0.02,0.35) {$\mu_-$};
+			% \node[anchor=east] at (axis cs:-0.02,0.62) {$\mu_+$};
+			
+			% --- Jump size tau_SRD ---
+			\draw[<->, thick] (axis cs:0.06,0.4) -- (axis cs:0.06,0.58);
+			\node[anchor=west] at (axis cs:0.07,0.485) {$\tau_{\text{FRD}}$};
+			
+			% --- Arrow + label "Cutoff" ---
+			\draw[->] (axis cs:0.28,0.08) -- (axis cs:0.02,0.08);
+			\node[anchor=west] at (axis cs:0.30,0.08) {Cutoff};
+			
+			% --- Curve labels ---
+			\node[black, anchor=west]  at (axis cs:0.45,0.80) {$\mathbb{E}[Y(1)\mid Z]$};
+			\node[black, anchor=west] at (axis cs:0.45,0.30) {$\mathbb{E}[Y(0)\mid Z]$};
+			\node[black, anchor=west] at (axis cs:0.45,0.50) {$\mathbb{E}[Y\mid Z]$};
+			
+		\end{axis}
+	\end{tikzpicture}
+	\caption{RD treatment effect in a fuzzy RD design. Solid segments are observed on each side of $c$; dashed segments are counterfactual.}
+	\label{fig:FRD-muplus-muminus}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+\cite{chib2016bayesian} propose a Bayesian inferential framework that explicitly models unit type (complier, always-taker, and never-taker), which enables implementation of a Gibbs sampler. Their empirical application is motivated by the April 1947 reform in the United Kingdom that raised the minimum school-leaving age from 14 to 15.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+\[
+Y_{ic}(0)=\beta_{0c0}+\beta_{0c1}Z_i+\mathbf{X}_i^{\top}\boldsymbol{\beta}_c+\mu_{0ci}=\mathbf{W}_{ic}^{\top}\beta_{0c}+\mu_{0ci},
+\]
+\[
+Y_{ic}(1)=\beta_{1c0}+\beta_{1c1}Z_i+\mathbf{X}_i^{\top}\boldsymbol{\beta}_c+\mu_{1ci}=\mathbf{W}_{ic}^{\top}\beta_{1c}+\mu_{1ci},
+\]
+\[
+Y_{in}(0)=\beta_{n0}+\mathbf{X}_i^{\top}\boldsymbol{\beta}_n+\mu_{ni}=\mathbf{W}_{in}^{\top}\beta_{0n}+\mu_{ni},
+\]
+and
+\[
+Y_{ia}(1)=\beta_{a0}+\mathbf{X}_i^{\top}\boldsymbol{\beta}_a+\mu_{ai}=\mathbf{W}_{ia}^{\top}\beta_{1a}+\mu_{ai},
+\]
+where $\mu_{dci}\sim t_v(0,\sigma^2_{dc})$ for $d\in\{0,1\}$, $\mu_{ni}\sim t_v(0,\sigma^2_{0n})$, and $\mu_{ai}\sim t_v(0,\sigma^2_{1a})$. The running variable is centered at the cutoff, 
+\[
+\tau_{\text{FRD}}=\beta_{1c0}-\beta_{0c0}.
+\]
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+\begin{table}[ht]
+	\centering
+	\caption{Distribution of subject type by observed policy regime and treatment}\label{tab:appCJ}
+	\begin{tabular}{lcc}
+		\hline
+		& \multicolumn{2}{c}{\textbf{Treatment}} \\ 
+		\cline{2-3}
+		\textbf{Policy indicator} & $D_i = 0$ & $D_i = 1$ \\ 
+		\hline
+		$\mathbbm{1}(Z_i < 0)$ (old policy) & c, n & a \\
+		$\mathbbm{1}(Z_i \geq 0)$ (new policy) & n & c, a \\
+		\hline
+	\end{tabular}
+\end{table}
+\footnotesize
+\begin{align*}
+P(C_i = c \mid Y_i, D_i = 0, \boldsymbol{\theta})
+&= \frac{\eta_{c} \, t_v\!\big(Y_i \mid \mathbf{W}_{ic}^{\top} \boldsymbol{\beta}_{0c}, \sigma^2_{0c} \big)}
+{\eta_{c} \, t_v\!\big(Y_i \mid \mathbf{W}_{ic}^{\top} \boldsymbol{\beta}_{0c}, \sigma^2_{0c} \big) +
+	\eta_{n} \, t_v\!\big(Y_i \mid \mathbf{W}_{in}^{\top} \boldsymbol{\beta}_{0n}, \sigma^2_{0n} \big)}
+\end{align*}
+\begin{align*}
+P(C_i = c \mid Y_i, D_i = 1, \boldsymbol{\theta})
+&= \frac{\eta_{c} \, t_v\!\big(Y_i \mid \mathbf{W}_{ic}^{\top} \boldsymbol{\beta}_{1c}, \sigma^2_{1c} \big)}
+{\eta_{c} \, t_v\!\big(Y_i \mid \mathbf{W}_{ic}^{\top} \boldsymbol{\beta}_{1c}, \sigma^2_{1c} \big) +
+	\eta_{a} \, t_v\!\big(Y_i \mid \mathbf{W}_{ia}^{\top} \boldsymbol{\beta}_{1a}, \sigma^2_{1a} \big)}
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+The posterior distribution is then Dirichlet with parameters $\alpha_{0k} + \sum_{i=1}^N \mathbbm{1}(C_i = k)$.
+
+The posterior distribution of $\lambda_i$ is gamma with parameters $(v+1)/2$ and $(v + \sigma_{dk}^{-2}(y_i - \mathbf{W}_{ik}^{\top} \boldsymbol{\beta}_{dk})^2) / 2$.
+
+The posterior distribution of $\boldsymbol{\beta}_{dk}$ is normal with mean
+\[
+\boldsymbol{\beta}_{dk,n} = \mathbf{B}_{dk,n} \left( \mathbf{B}_{dk,0}^{-1} \boldsymbol{\beta}_{dk,0} + \sigma_{dk}^{-2} \sum_{i \in I_{dk}} \lambda_i \mathbf{W}_{ik} Y_i \right),
+\]
+and covariance matrix
+\[
+\mathbf{B}_{dk,n} = \left( \mathbf{B}_{dk,0}^{-1} + \sigma_{dk}^{-2} \sum_{i \in I_{dk}} \lambda_i \mathbf{W}_{ik} \mathbf{W}_{ik}^{\top} \right)^{-1},
+\]
+where $I_{dk} = \{i : D_i = d, C_i = k\}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+The posterior distributions are also inverse-gamma, $\sigma_{dk}^2 \sim IG(\alpha_{dk,n}/2, \delta_{dk,n}/2)$, where
+\[
+\alpha_{dk,n} = \alpha_{dk,0} + N_{dk},
+\]
+and
+\[
+\delta_{dk,n} = \delta_{dk,0} + \sum_{i \in I_{dk}} \lambda_i \left(Y_i - \mathbf{w}_{ik}^{\top} \boldsymbol{\beta}_{dk} \right)^2.
+\]
+Here, $N_{dk}$ denotes the number of elements (cardinality) of $I_{dk}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Regression discontinuity design (RD): Fuzzy, returns to compulsory schooling}
+A simulation assuming that $Z_i$ follows a discrete uniform distribution from $-24$ to $24$, where the policy indicator equals one if $Z_i \geq 0$. $X_i$ follows a discrete uniform distribution between $85$ and $95$. We set $\boldsymbol{\beta}_{0c} = [4.50 \ -0.20 \ 0.03]^{\top}$ and $\boldsymbol{\beta}_{1c} = [5.50 \ 0.40 \ 0.03]^{\top}$, so that the treatment effect is $1$. $\boldsymbol{\beta}_{0n} = [6.80 \ -0.02]^{\top}$ and $\boldsymbol{\beta}_{1a} = [5.50 \ -0.04]^{\top}$, with $\sigma_{0c}^2 = \sigma_{1c}^2 = 0.10$, $\sigma_{0n}^2 = 0.15$, and $\sigma_{1a}^2 = 0.20$. The type probabilities are $\eta_{c} = 0.70$, $\eta_{n} = 0.15$, and $\eta_{a} = 0.15$. We set the sample size to $3{,}000$ and $v = 5$.
+\end{frame}
+
+\section{Sample selection}
+\begin{frame}
+	\frametitle{Sample selection}
+\begin{align*}
+	Y_i = \begin{cases}
+		Y_i(1) & \text{if } D_i=1, \\
+		\text{NA} & \text{if } D_i=0,
+	\end{cases}
+\end{align*}
+that is, we only observe $Y_i = Y_i(1)$ for $i=1,2,\dots,N$, while $Y_i(0)$ remains unobserved (``missing'').
+
+The missingness mechanism is ignorable in Bayesian inference if the following two conditions hold:
+  \begin{itemize}
+      \item the likelihood can be factorized as
+\[
+p(y_i, d_i\mid \boldsymbol{\theta},\boldsymbol{\gamma}) 
+= p(y_i\mid \boldsymbol{\theta})\, p(y_i,d_i \mid \boldsymbol{\gamma}),
+\] 
+and 
+\item the parameters $\boldsymbol{\theta}$ and $\boldsymbol{\gamma}$ are \emph{a priori} independent,
+\[
+\pi(\boldsymbol{\theta},\boldsymbol{\gamma}) 
+= \pi(\boldsymbol{\theta})\,\pi(\boldsymbol{\gamma}).
+\]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+Under these conditions, posterior inference can be based on
+\[
+\pi(\boldsymbol{\theta}\mid \mathbf{y}) 
+\propto \pi(\boldsymbol{\theta})\, p(\mathbf{y} \mid \boldsymbol{\theta}).
+\]
+Thus, if the missingness mechanism is \textit{Missing At Random} (MAR) and the parameters are \emph{a priori} independent, the missingness mechanism is ignorable for Bayesian inference (see Chapter~6 of \cite{little2019statistical}).
+In contrast, when the missingness mechanism is non-ignorable (i.e., Not Missing At Random, NMAR), the probability of observing $Y_i$ depends on the unobserved values themselves. In this case, Bayesian inference must be performed using the full joint likelihood,
+\[
+p(y_i, d_i \mid \boldsymbol{\theta},\boldsymbol{\gamma}),
+\]
+which requires specifying and estimating both the outcome model and the selection model simultaneously.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+The classical sample selection model of \cite{heckman1979sample} establishes,
+\begin{align*}
+	Y_i = \begin{cases}
+		\mathbf{X}_i^{\top}\boldsymbol{\beta}+\mu_i & \text{if } D_i=1, \\
+		\text{NA} & \text{if } D_i=0,
+	\end{cases}
+\end{align*}
+
+\begin{align*}
+	D_i = \begin{cases}
+		1 & \text{if } D_i^* = \mathbf{Z}_i^{\top}\boldsymbol{\gamma}+\nu_i > 0, \\
+		0 & \text{if } D_i^* = \mathbf{Z}_i^{\top}\boldsymbol{\gamma}+\nu_i \leq 0,
+	\end{cases}
+\end{align*}
+
+where
+\begin{align}
+	\begin{bmatrix}
+		\mu_i \\[6pt]
+		\nu_i
+	\end{bmatrix}
+	\sim N\!\left(
+	\begin{bmatrix}
+		0 \\ 0
+	\end{bmatrix},
+	\begin{bmatrix}
+		\sigma^2_{\mu} & \sigma_{\mu\nu} \\
+		\sigma_{\mu\nu} & 1
+	\end{bmatrix}\right).
+\end{align}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+Note that
+\begin{align*}
+	\mathbb E[Y_i\mid D_i=1,\mathbf X_i,\mathbf Z_i]
+	&=\mathbf X_i^\top \boldsymbol\beta+\mathbb E[\mu_i\mid D_i=1,\mathbf Z_i]\\
+	&=\mathbf X_i^\top \boldsymbol\beta + \sigma_{\mu\nu}\,\lambda(\mathbf Z_i^\top\boldsymbol\gamma)\\
+	&=\mathbf X_i^\top \boldsymbol\beta + \rho\,\sigma_\mu\,\lambda(\mathbf Z_i^\top\boldsymbol\gamma).
+\end{align*}
+We use the augmented likelihood. Thus,
+{\small
+\begin{align*}
+\pi(\boldsymbol{\delta},\sigma^2_{\mu},\sigma_{\mu\nu},D_i^*\mid \mathbf{y},\mathbf{d}) 
+	& \propto \prod_{i\in I_{0}} \pi(D_i^*\mid \boldsymbol{\delta},\sigma^2_{\mu},\sigma_{\mu\nu}) 
+	\, \mathbbm{1}(d_i=0)\, \mathbbm{1}(D_i^*\leq 0) \\
+	& \quad \times \prod_{i\in I_{1}} p(y_i,D_i^*\mid \boldsymbol{\delta},\sigma^2_{\mu},\sigma_{\mu\nu}) 
+	\, \mathbbm{1}(d_i=1)\, \mathbbm{1}(D_i^*> 0) \\
+	& \quad \times \pi(\boldsymbol{\delta},\sigma^2_{\mu},\sigma_{\mu\nu}),
+\end{align*}
+}
+where $\boldsymbol{\delta}=[\boldsymbol{\beta}^{\top} \ \boldsymbol{\gamma}^{\top}]^{\top}$, 
+$I_0=\{i : d_i=0\}$ and $I_1=\{i : d_i=1\}$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+Following Chapter~11 in \cite{greenberg2012introduction}, we set
+\[
+\boldsymbol{\eta}_i=
+\begin{cases}
+	[0, \, D_i^*]^{\top}, & i\in I_0\\
+	[y_i, \, D_i^*]^{\top}, & i\in I_1
+\end{cases},
+\qquad
+\mathbf{W}_i=\begin{bmatrix}
+	\mathbf{X}_i^{\top} & \mathbf{0}\\
+	\mathbf{0} & \mathbf{Z}_i^{\top}
+\end{bmatrix}, 
+\qquad
+\mathbf{J}=\begin{bmatrix}
+	0 & 0\\
+	0 & 1
+\end{bmatrix}.
+\]
+
+Assuming $\pi(\boldsymbol{\delta}) \sim N(\boldsymbol{\delta}_0,\mathbf{D}_0)$, the conditional posterior distribution of $\boldsymbol{\delta}$ is normal with mean
+\[
+\boldsymbol{\delta}_n=\mathbf{D}_n\left[\sum_{i\in I_0}\mathbf{W}_i^{\top}\mathbf{J}\boldsymbol{\eta}_i
++\sum_{i\in I_1}\mathbf{W}_i^{\top}\boldsymbol{\Sigma}^{-1}\boldsymbol{\eta}_i
++\mathbf{D}_0^{-1}\boldsymbol{\delta}_0\right],
+\]
+and variance matrix
+\[
+\mathbf{D}_n=\left[\sum_{i\in I_0}\mathbf{W}_i^{\top}\mathbf{J}\mathbf{W}_i
++\sum_{i\in I_1}\mathbf{W}_i^{\top}\boldsymbol{\Sigma}^{-1}\mathbf{W}_i
++\mathbf{D}_0^{-1}\right]^{-1}, \boldsymbol{\Sigma}=\begin{bmatrix}
+	\sigma^2_{\mu} & \sigma_{\mu\nu} \\[6pt]
+	\sigma_{\mu\nu} & 1
+\end{bmatrix}.
+\] 
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+Let $\omega=\sigma^2_{\mu}-\sigma^2_{\mu\nu}$ denote the conditional variance of $\mu_i \mid \nu_i$. 
+Assuming $\omega^{-1}\sim G(\alpha_0/2,\delta_0/2)$ and noting that
+\[
+p(y_i,D_i^*\mid \boldsymbol{\delta},\omega,\sigma_{\mu\nu})
+= p(y_i\mid D_i^*, \boldsymbol{\delta},\omega,\sigma_{\mu\nu})
+\times p(D_i^*\mid \boldsymbol{\delta},\omega,\sigma_{\mu\nu}),
+\]
+the conditional posterior distribution of $\omega^{-1}$ is Gamma,
+\[
+\omega^{-1}\mid \boldsymbol{\delta},\sigma_{\mu\nu}, \mathbf{y},\mathbf{d} \sim G(\alpha_n/2,\delta_n/2),
+\]
+with
+\[
+\alpha_n=\alpha_0+N_1,
+\qquad
+\delta_n=\delta_0+\sum_{i\in I_1}\Big[y_i-\mathbf{X}_i^{\top}\boldsymbol{\beta}
+-\sigma_{\mu\nu}(D_i^*-\mathbf{Z}_i^{\top}\boldsymbol{\gamma})\Big]^2,
+\]
+where $N_1$ is the number of observations with $D_i=1$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+In addition, assuming $\sigma_{\mu\nu}\sim N(s_0,S_0)$, the conditional posterior distribution is normal with mean
+\[
+s_n=S_n\left(\omega^{-1}\sum_{i=1}^N(D_i^*-\mathbf{Z}_i^{\top}\boldsymbol{\gamma})(y_i-\mathbf{X}_i^{\top}\boldsymbol{\beta})
++S_0^{-1}s_0\right),
+\]
+and variance
+\[
+S_n=\left[\omega^{-1}\sum_{i=1}^N(D_i^*-\mathbf{Z}_i^{\top}\boldsymbol{\gamma})^2+S_0^{-1}\right]^{-1}.
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection}
+Finally, since
+\[
+p(y_i,D_i^*\mid \boldsymbol{\delta},\omega,\sigma_{\mu\nu})
+= p(D_i^*\mid y_i, \boldsymbol{\delta},\omega,\sigma_{\mu\nu})
+\times p(y_i\mid \boldsymbol{\delta},\omega,\sigma_{\mu\nu}),
+\]
+the conditional posterior distribution of $D_i^*$ is
+\[
+D_i^* \sim 
+\begin{cases}
+	TN_{(-\infty,0]}(\mathbf{Z}_i^{\top}\boldsymbol{\gamma},\,1), & i\in I_0,\\[6pt]
+	TN_{(0,\infty)}\!\left(\mathbf{Z}_i^{\top}\boldsymbol{\gamma}
+	+\dfrac{\sigma_{\mu\nu}}{\sigma_{\mu\nu}^2+\omega}\,(y_i-\mathbf{X}_i^{\top}\boldsymbol{\beta}),\,
+	\dfrac{\omega}{\sigma_{\mu\nu}^2+\omega}\right), & i\in I_1,
+\end{cases}
+\]
+where $TN_{A}(\mu,\sigma^2)$ denotes a normal distribution with mean $\mu$ and variance $\sigma^2$, truncated to the set $A$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Sample selection: Simulation of the sample selection model}
+We simulate the model 
+\[
+Y_i = 12 + X_{i1} + X_{i2} + \mu_i,
+\]
+where $X_{i1}\sim N(0,4)$, $X_{i2}\sim \text{Bin}(1,0.5)$, and $\mu_i\sim N(0,1.2)$ for $i=1,2,\dots,1,000$.  
+In addition, 
+\[
+D_i^* = 1 + Z_{i1} - X_{i2} + \nu_i,
+\]
+where $Z_{i1}\sim N(0,4)$.
+
+The covariance between $\mu_i$ and $\nu_i$ is set to $0.6$.
+
+The hyperparameters are $\boldsymbol{\delta}_0=[0 \ 0 \ 0 \ 0 \ 0 \ 0]^{\top}$, $\mathbf{D}_0=1,000\mathbf{I}_6$, $\alpha_0=\delta_0=0.001$, $s_0=0$, and $S_0=1,000$. We perform 1,500 iterations with a burn-in of 500.
+\end{frame}
+
+\section{Bayesian exponentially tilted empirical likelihood}
+
+\begin{frame}
+	\frametitle{Bayesian exponentially tilted empirical likelihood}
+    The point of departure is a set of moment conditions
+\[
+\mathbb{E}\!\big[\mathbf{g}(\mathbf{W},\boldsymbol{\theta})\big]=\mathbf{0}_{d},
+\]
+where the expectation is with respect to the population distribution, $\mathbf{W}_{1:N}:=[\mathbf{W}_1 \ \mathbf{W}_2 \ \dots \ \mathbf{W}_N]$ is a random sample from $\mathbf{W}\subset \mathbb{R}^{d_w}$, $\mathbf{g}:\mathbb{R}^{d_w}\times\boldsymbol{\Theta}\to\mathbb{R}^{d}$ is a vector of known functions, and 
+$\boldsymbol{\theta}=[\theta_{1}\ \theta_{2}\ \dots\ \theta_{p}]^{\top}\in\boldsymbol{\Theta}\subset\mathbb{R}^{p}$.
+If $d>p$ the model is \emph{over-identified}; if $d=p$ it is \emph{exactly identified} (and if $d<p$ it is \emph{under-identified}).
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian exponentially tilted empirical likelihood}
+The posterior distribution is
+\[
+\pi(\boldsymbol{\theta}\mid \mathbf{W}_{1:N})
+\;\propto\;
+\pi(\boldsymbol{\theta})\; L_{\mathrm{ETEL}}(\boldsymbol{\theta}),
+\qquad
+L_{\mathrm{ETEL}}(\boldsymbol{\theta})=\prod_{i=1}^N p_i^{*}(\boldsymbol{\theta}),
+\]
+where $\pi(\boldsymbol{\theta})$ is the prior and $L_{\mathrm{ETEL}}$ is the exponentially tilted empirical likelihood. The weights
+$\big(p_1^{*}(\boldsymbol{\theta}),\dots,p_N^{*}(\boldsymbol{\theta})\big)$ are obtained from the maximum-entropy problem
+\[
+\max_{\{p_i\}_{i=1}^N}\;\Big\{-\sum_{i=1}^N p_i\log p_i\Big\}
+\quad\text{subject to}\quad
+\sum_{i=1}^N p_i=1,\;\; p_i\ge 0,\]
+\[
+\sum_{i=1}^N p_i\,\mathbf{g}(\mathbf{W}_i,\boldsymbol{\theta})=\mathbf{0}_d.
+\]
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian exponentially tilted empirical likelihood}
+Equivalently (dual/saddlepoint form; see \cite{schennach2005betel,schennach2007etel,chib2018moment}),
+\[
+p_i^{*}(\boldsymbol{\theta})
+=\frac{\exp\!\big(\boldsymbol{\lambda}(\boldsymbol{\theta})^{\top}\mathbf{g}(\mathbf{W}_i,\boldsymbol{\theta})\big)}
+{\sum_{j=1}^N \exp\!\big(\boldsymbol{\lambda}(\boldsymbol{\theta})^{\top}\mathbf{g}(\mathbf{W}_j,\boldsymbol{\theta})\big)}, \quad
+\sum_{i=1}^N p_i^{*}(\boldsymbol{\theta})\,\mathbf{g}(\mathbf{W}_i,\boldsymbol{\theta})=\mathbf{0}_d.
+\]
+$\boldsymbol{\lambda}(\boldsymbol{\theta})$ can be characterized as
+\begin{align}\label{eqLambda}
+\boldsymbol{\lambda}(\boldsymbol{\theta})
+=\arg\min_{\boldsymbol{\lambda}\in\mathbb{R}^{d}}
+\;\log\!\left(\frac{1}{N}\sum_{i=1}^N
+\exp\!\big(\boldsymbol{\lambda}^{\top}\mathbf{g}(\mathbf{W}_i,\boldsymbol{\theta})\big)\right),
+\end{align}
+whose gradient condition is precisely the moment constraint above. Therefore, the BETEL posterior is
+\[
+\pi(\boldsymbol{\theta}\mid \mathbf{w}_{1:N})
+\;\propto\;
+\pi(\boldsymbol{\theta})\;
+\prod_{i=1}^N
+\frac{\exp\!\big(\boldsymbol{\lambda}(\boldsymbol{\theta})^{\top}\mathbf{g}(\mathbf{W}_i,\boldsymbol{\theta})\big)}
+{\sum_{j=1}^N \exp\!\big(\boldsymbol{\lambda}(\boldsymbol{\theta})^{\top}\mathbf{g}(\mathbf{W}_j,\boldsymbol{\theta})\big)}.
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian exponentially tilted empirical likelihood}
+    \small
+\begin{algorithm}[H]
+	\caption{Bayesian Exponentially Tilted Empirical Likelihood: Metropolis-Hastings algorithm}\label{BETEL}
+	\begin{algorithmic}
+		\State Set $\boldsymbol{\theta}^0$ in the support of $\pi(\boldsymbol{\theta}\mid \mathbf{W}_{1:N})$ 
+		\For{\texttt{$s=1,\dots,S$}}
+			\State Propose $\boldsymbol{\theta}^c$ from $q(\boldsymbol{\theta}\mid \mathbf{W}_{1:N})$, and solve for $p_i^{*}(\boldsymbol{\theta}^c), i=1,2,\dots,N$ in Equation~\ref{eqLambda} 
+			\State Calculate the acceptance probability
+            {\small{
+			\[
+			\alpha(\boldsymbol{\theta}^{(s-1)},\boldsymbol{\theta}^c\mid \mathbf{W}_{1:N})=\min\left(1,\frac{\pi(\boldsymbol{\theta}^{c}\mid \mathbf{W}_{1:N})}{\pi(\boldsymbol{\theta}^{(s-1)}\mid \mathbf{W}_{1:N})}\frac{q(\boldsymbol{\theta}^{(s-1)}\mid \mathbf{W}_{1:N})}{q(\boldsymbol{\theta}^{c}\mid \mathbf{W}_{1:N})}\right)
+			\]
+            }}
+			\State Draw $U$ from $U(0,1)$
+			\State $\boldsymbol{\theta}^{(s)}=\begin{Bmatrix}
+			\boldsymbol{\theta}^{c} & \text{if }U\leq \alpha(\boldsymbol{\theta}^{(s-1)},\boldsymbol{\theta}^c\mid \mathbf{W}_{1:N})\\
+			 \boldsymbol{\theta}^{(s-1)} & \text{otherwise}
+		\end{Bmatrix}$
+		\EndFor  
+	\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Bayesian exponentially tilted empirical likelihood: Classical measurement error in regressor}
+Let's set the unobserved (latent) regressor $X_i^*$ such that
+\[
+X_i = X_i^* + \nu_i,
+\]
+where $X_i$ is the observed regressor, and $\nu_i$ is a \textit{classical measurement error} such that 
+$\mathbb{E}[\nu_i]=0$ and $\nu_i \perp \{X_i^*,\mu_i\}$, where $\mu_i$ is the stochastic error of the structural model
+\[
+Y_i=\beta_0+\beta_1X_i^*+\mu_i,
+\] 
+where $\mathbb{E}[\mu_i]=0$ and $\mu_i\perp X_i^*$.
+
+If we perform the regression using the observed regressor, then
+\[
+Y_i=\beta_0+\beta_1(X_i-\nu_i)+\mu_i
+=\beta_0+\beta_1X_i+\underbrace{\mu_i-\beta_1\nu_i}_{\epsilon_i},
+\]
+where the new error term is $\epsilon_i=\mu_i-\beta_1\nu_i$, \(
+\mathbb{E}[\epsilon_i\mid X_i]\neq 0.
+\)
+\end{frame}
+
+\section{General Bayes posteriors}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors}
+The \textit{Gibbs posterior}, can still perform very well \citep{Jiang2008},
+\begin{equation}\label{eq:GibbsPost}
+	\hat{\pi}(\boldsymbol{\theta}\mid\mathbf{y})
+	=\frac{\exp\left\{-Nw\,R_N(\boldsymbol{\theta},\mathbf{y})\right\}\pi(\boldsymbol{\theta})}
+	{\int_{\boldsymbol{\Theta}}\exp\left\{-Nw\,R_N(\boldsymbol{\theta},\mathbf{y})\right\}\pi(\boldsymbol{\theta})\,d\boldsymbol{\theta}},
+\end{equation}
+where $w>0$ is the \textit{learning rate} (or the inverse temperature in simulated annealing), which balances the information in the data with that in the prior, $N$ is the sample size, and
+\[
+R_N(\boldsymbol{\theta},\mathbf{y})=\frac{1}{N}\sum_{i=1}^N l(\boldsymbol{\theta},\mathbf{y}_i)
+\]
+is the empirical risk associated with the loss function $l(\boldsymbol{\theta},\mathbf{y}_i)$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors}
+Correctness of the parametric model is not required, since
+\[
+\frac{1}{N}\sum_{i=1}^N l(\boldsymbol{\theta},\mathbf{y}_i)\;\stackrel{p}{\longrightarrow}\;\int_{\mathcal{Y}} l(\boldsymbol{\theta},\mathbf{y})\,p(\mathbf{y}\mid \boldsymbol{\theta})\,d\mathbf{y},
+\]
+by the law of large numbers as $N\to\infty$.
+
+Thus, the Gibbs posterior provides inference on the parameter values that minimize the chosen risk function, with minimal modeling assumptions. In contrast, the standard Bayesian posterior allows inference on essentially any feature of the data-generating distribution, but at the cost of strong model assumptions \citep{Syring2019}.
+
+\cite{bissiri2016general} show that Equation~\ref{eq:GibbsPost} is a valid, coherent mechanism to update prior beliefs.
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors}
+\cite{chernozhukov2003mcmc} introduce the \emph{Laplace-type estimator} (LTE) or \textit{quasi-posterior} distribution, which can be interpreted as a special case of the \emph{general Bayes} update of \cite{bissiri2016general}, taking as loss a scaled sample criterion based on the moment conditions (e.g., the GMM quadratic form).
+
+In particular, given the moment conditions
+\[
+\mathbb{E}\!\big[\mathbf{g}_i(\mathbf{w}_i,\boldsymbol{\theta})\big]=\mathbf{0}_{d} 
+\quad \text{if and only if } \boldsymbol{\theta}=\boldsymbol{\theta}_0,
+\]
+where the expectation is taken with respect to the population distribution, 
+$\mathbf{w}_{1:N}:=[\mathbf{w}_1 \ \mathbf{w}_2 \ \dots \ \mathbf{w}_N]$ is a random sample from $\mathbf{W}\subset \mathbb{R}^{d_w}$, 
+$\mathbf{g}:\mathbb{R}^{d_w}\times\boldsymbol{\Theta}\to\mathbb{R}^{d}$ is a vector of known functions, and 
+$\boldsymbol{\theta}=[\theta_{1}\ \theta_{2}\ \dots\ \theta_{p}]^{\top}\in\boldsymbol{\Theta}\subset\mathbb{R}^{p}$ with $d\geq p$. 
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors}
+The risk function can be defined as
+\[
+R_N(\boldsymbol{\theta},\mathbf{w})=\tfrac{1}{2}\left(\underbrace{\frac{1}{N}\sum_{i=1}^N \mathbf{g}_i(\mathbf{w}_i,\boldsymbol{\theta})}_{\mathbf{g}_N(\boldsymbol{\theta})}\right)^{\top}\mathbf{W}_N\left(\underbrace{\frac{1}{N}\sum_{i=1}^N\mathbf{g}_i(\mathbf{w}_i,\boldsymbol{\theta})}_{\mathbf{g}_N(\boldsymbol{\theta})}\right),
+\]
+where $\mathbf{W}_N$ is a positive semi-definite weighting matrix such that
+\[
+\mathbf{W}_N \;\to\; 
+\Bigg(\text{Var}\left[\sqrt{N}\left(\tfrac{1}{N}\sum_{i=1}^N \mathbf{g}_i(\mathbf{w}_i,\boldsymbol{\theta}_0)\right)\right]\Bigg)^{-1}
+\quad \text{as } N\rightarrow \infty.
+\]  
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{General Bayes posteriors}
+\begin{algorithm}[H]
+	\caption{General Bayes posterior: Metropolis-Hastings algorithm}\label{Alg:GibbsPosteior}
+	\begin{algorithmic}[1]
+		\State Set $\bm{\theta}^{(0)}$ in the support of $\hat{\pi}(\bm{\theta}\mid \bm{y})$  		 			
+		\For{\texttt{$s=1,\dots,S$}}
+		\State Draw $\bm{\theta}^{c}$ from $q(\bm{\theta}^{c}\mid \bm{\theta}^{(s-1)})$
+		\State {\small{$\alpha(\bm{\theta}^{(s-1)}, \bm{\theta}^{c}) = 
+		\min\left\{\frac{q(\bm{\theta}^{(s-1)} \mid  \bm{\theta}^{c}) \exp\left\{-Nw\,R_N(\boldsymbol{\theta}^c,\mathbf{y})\right\}\pi(\boldsymbol{\theta}^c)}{q(\bm{\theta}^{c} \mid  \bm{\theta}^{(s-1)}) \exp\left\{-Nw\,R_N(\boldsymbol{\theta}^{(s-1)},\mathbf{y})\right\}\pi(\boldsymbol{\theta}^{(s-1)})}, 1\right\}$}}
+		\State Draw $U$ from $U(0,1)$
+		\State $\bm{\theta}^{(s)}=\begin{Bmatrix}
+			\bm{\theta}^{c} & \text{if } U\leq \alpha(\bm{\theta}^{(s-1)}, \bm{\theta}^{c})\\
+			\bm{\theta}^{(s-1)} & \text{otherwise}\\
+		\end{Bmatrix}$
+		\EndFor 
+	\end{algorithmic} 
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors: Instrumental variable quantile regression (IVQR)}
+Assume a binary treatment variable $D_i\in\{0,1\}$, with potential outcomes $\{Y_i(0),Y_i(1)\}$. The estimand of interest is the quantile treatment effect, which summarizes the differences in the quantiles of potential outcomes across treatment states,
+\[
+q(D_i=1,\mathbf{X}_i=\mathbf{x}_i,\tau)-q(D=0,\mathbf{X}_i=\mathbf{x}_i,\tau),
+\] 
+where $q(D_i=d,\mathbf{X}_i=\mathbf{x}_i,\tau)$ denotes the $\tau$-th quantile treatment response function.  
+
+The potential outcomes are related to the quantile treatment response via
+\[
+Y_i(d)=q(D_i=d_i,\mathbf{X}_i=\mathbf{x}_i,U(d_i)),
+\]
+where $U(d_i)\sim U(0,1)$ is the \textit{rank variable}.
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors: Instrumental variable quantile regression (IVQR)}
+The identification conditions for the IVQR model are stated in \cite{Chernozhukov2005} as follows:
+\begin{itemize}
+    \item \textit{Potential outcomes:}  
+\[
+Y_i(d)=q(D_i=d_i,\mathbf{X}_i=\mathbf{x}_i,U(d_i)),
+\]
+where $q(D_i=d_i,\mathbf{X}_i=\mathbf{x}_i,\tau)$ is strictly increasing in $\tau$ and $U(d_i)\sim U(0,1)$.  
+
+\item \textit{Independence:} Conditional on $\mathbf{X}_i=\mathbf{x}_i$, the rank variables $\{U(d_i)\}$ are independent of the instruments $\mathbf{Z}_i$.  
+
+\item \textit{Selection:} The treatment assignment is given by $D_i=\delta(\mathbf{Z}_i,\mathbf{X}_i,\mathbf{V}_i)$ for some unknown function $\delta$ and unobserved heterogeneity $\mathbf{V}_i$.  
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors: Instrumental variable quantile regression (IVQR)}
+\begin{itemize}
+\item \textit{Rank invariance:} Conditional on $\mathbf{X}_i=\mathbf{x}_i,\mathbf{Z}_i=\mathbf{z}_i$,
+
+- either $\{U(d_i)\}$ coincide ($U(d_i)=U$ for all $d$), or
+  
+- $\{U(d_i)\}$ are identically distributed conditional on $\mathbf{V}_i$.  
+
+\item \textit{Observables:} The observed data consist of $Y_i=q(D_i,\mathbf{X}_i,U(D_i))$, $D_i$, $\mathbf{X}_i$, and $\mathbf{Z}_i$, $i=1,2,\dots,N$.  
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{General Bayes posteriors: Instrumental variable quantile regression (IVQR)}
+The main testable implication of the identification restrictions is that
+\[
+P\!\left(Y_i \leq q(D_i,\mathbf{X}_i,\tau)\mid \mathbf{X}_i,\mathbf{Z}_i\right)
+= P\!\left(Y_i < q(D_i,\mathbf{X}_i,\tau)\mid \mathbf{X}_i,\mathbf{Z}_i\right)
+= \tau,
+\]
+for all $\tau$ almost surely, and $U(D_i)\sim U(0,1)$ conditional on $(\mathbf{X}_i,\mathbf{Z}_i)$.  
+
+\[
+\mathbf{g}_N(\boldsymbol{\theta})=\frac{1}{N}\sum_{i=1}^N (\tau-\mathbbm{1}(Y_i\leq \alpha_{\tau}D_i+\mathbf{X}_i^{\top}\boldsymbol{\beta}_{\tau}))\begin{bmatrix}
+\mathbf{X}_i\\
+\mathbf{Z}_i
+\end{bmatrix}.
+\]
+The empirical risk function is given by 
+\[
+R_N(\boldsymbol{\theta},\mathbf{w})=\tfrac{1}{2}\mathbf{g}_N(\boldsymbol{\theta})^{\top}\mathbf{W}_N\mathbf{g}_N(\boldsymbol{\theta}), \mathbf{W}_N=\frac{1}{\tau(1-\tau)}\left(\frac{1}{N}\sum_{i=1}^N \mathbf{Z}_i\mathbf{Z}_i^{\top}\right)^{-1}.
+\]
+\end{frame}
+
+\section{Doubly robust Bayesian inferential framework (DRB)}
+
+\begin{frame}
+	\frametitle{Doubly robust Bayesian inferential framework (DRB)}
+Let $Y_i\in\{0,1\}$ be the outcome and $D_i\in\{0,1\}$ the treatment, thus
+\[
+Y_i = D_i\,Y_i(1) + (1-D_i)\,Y_i(0),
+\]
+where $Y_i(1)$ and $Y_i(0)$ are the potential outcomes.
+
+Let $\mathbf{X}_i$ denote pre-treatment covariates with distribution $F_0$ and density $f_0$, and define the propensity score
+\[
+\pi_0(\mathbf{x}) := P(D_i=1\mid \mathbf{X}_i=\mathbf{x})
+\]
+and the conditional mean outcome (success probability)
+\[
+m_0(d,\mathbf{x}) := P(Y_i=1\mid D_i=d,\mathbf{X}_i=\mathbf{x}).
+\]
+\end{frame}
+
+\begin{frame}
+	\frametitle{Doubly robust Bayesian inferential framework (DRB)}
+For an i.i.d. sample $W_i=(Y_i,D_i,\mathbf{X}_i^{\top})^{\top}$, the joint density can be written as
+\[
+p_{f,\pi,m}(y,d,\mathbf{x})
+= f(\mathbf{x})\,[\pi(\mathbf{x})]^d\,[1-\pi(\mathbf{x})]^{1-d}\,[m(d,\mathbf{x})]^y\,[1-m(d,\mathbf{x})]^{1-y}.
+\]
+The parameter of interest is the average treatment effect (ATE),
+\[
+\tau := \mathbb{E}_0\!\left[\,Y_i(1)-Y_i(0)\,\right],
+\]
+where $\mathbb{E}_0$ is the expectation with respect to the population distribution.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Doubly robust Bayesian inferential framework (DRB)}
+For the outcome regression and propensity score use logits:
+\[
+m_\eta(d,\mathbf{x})=\frac{1}{1+\exp\{-\eta^m(d,\mathbf{x})\}},
+\qquad
+\pi_\eta(\mathbf{x})=\frac{1}{1+\exp\{-\eta^\pi(\mathbf{x})\}},
+\]
+so that
+\[
+\eta^m(d,\mathbf{x})=\log\!\left(\frac{m_\eta(d,\mathbf{x})}{1-m_\eta(d,\mathbf{x})}\right),
+\qquad
+\eta^\pi(\mathbf{x})=\log\!\left(\frac{\pi_\eta(\mathbf{x})}{1-\pi_\eta(\mathbf{x})}\right).
+\]
+For the covariate density, they use a log-density parametrization \(
+f_\eta(\mathbf{x})=\exp\{\eta^f(\mathbf{x})\},
+\eta^f(\mathbf{x})=\log f_\eta(\mathbf{x}).
+\)
+The induced ATE is
+\[
+\tau_\eta := \mathbb{E}_\eta\!\left[m_\eta(1,\mathbf{X})-m_\eta(0,\mathbf{X})\right].
+\]
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Doubly robust Bayesian inferential framework (DRB)}
+The basis for inference on $\tau_\eta$ is the \textit{efficient influence function} (EIF):
+\[
+\tilde{\tau}_\eta(W)
+= \big\{m_\eta(1,\mathbf{X})-m_\eta(0,\mathbf{X})\big\}
++ \gamma_\eta(D,\mathbf{X})\,\big\{Y-m_\eta(D,\mathbf{X})\big\}
+- \tau_\eta,
+\]
+where the Riesz representer for the ATE functional is
+\[
+\gamma_\eta(D,\mathbf{X})
+= \frac{D}{\pi_\eta(\mathbf{X})}
+- \frac{1-D}{1-\pi_\eta(\mathbf{X})}.
+\]
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Doubly robust Bayesian inferential framework (DRB)}
+    
+    \begin{algorithm}[H]
+        \caption{Double Robust Bayesian Algorithm}\label{Alg:DRBayes}
+        \begin{algorithmic}[1]
+        {\tiny
+            \State Have initial estimates of $\hat{\gamma}_{\eta}$ based on logistic Lasso
+            \State Trim the propensity score using standard values, for instance, 10\%, or the optimal trimming rule proposed by \cite{Crump2009Overlap}
+            \State Estimate the Riesz representer using the estimate of the propensity score 
+            \State Calculate the prior correction term 
+            $\sigma_n=\frac{\log(n)}{n^{1/2}\Gamma_n}$, 
+            $\Gamma_n=\frac{1}{n}\sum_{i=1}^n |\hat{\gamma}_{\eta}(d_i,\mathbf{x}_i)|$, 
+            $n$ is the effective sample size (after trimming)
+            \State Calculate the prior adjustment $\sigma_n\times \hat{\gamma}_{\eta}$ 
+            \State Calculate $\hat{m}(d,\mathbf{x})=\frac{1}{1+\exp\{-\eta^m(d,\mathbf{x})\}}$ as the posterior mean of a Gaussian Process (GP)
+            \State Set an initial GP prior for the adjusted mean 
+            $m_{\eta}^c(d,\mathbf{x})$, where $\eta^m \sim \mathrm{GP}(0,K_c)$ with  
+            $K_c = K + \sigma_n^2\,\widehat{\gamma}_\eta(d,\mathbf{x})\,\widehat{\gamma}_\eta(d',\mathbf{x}')$
+            \For{\texttt{$s = 1,\dots,S$}} 
+                \State Generate the $s$th draw of the adjusted GP posterior $m_{\eta}^{c,s}(d,\mathbf{x})$
+                \State Draw Bayesian bootstrap weights 
+                $M^s_{ni}=\frac{e_i^s}{\sum_{j=1}^n e_j^s}$, $e_i^s\sim\mathrm{Exp}(1)$
+                \State Compute corrected posterior draw  
+                $\tilde{\tau}_{\eta}^s=\tau_{\eta}^s-\hat{b}_{\eta}^s$, where  
+                $\tau_{\eta}^s=\sum_{i=1}^n M^s_{ni}\big(m_{\eta}^{c,s}(1,\mathbf{x}_i)-m_{\eta}^{c,s}(0,\mathbf{x}_i)\big)$,  
+                $\hat{b}_{\eta}^s=\frac{1}{n}\sum_{i=1}^n\tau[m_{\eta}^s(\mathbf{w}_i)-\hat{m}(\mathbf{w}_i)]$
+            \EndFor 
+            }
+        \end{algorithmic}
+    \end{algorithm}
+\end{frame}
+
+
+\begin{frame}
+	\frametitle{Doubly robust Bayesian inferential framework (DRB): Simulation}
+Let us simulate the process 
+\[
+\eta^{\pi}_i = -0.3 + 0.8X_{i1} - 0.5X_{i2} + 0.7X_{i3}, 
+\]
+\[
+\eta^{m}_i = -0.2 + 0.6D_i + 0.5X_{i1} - 0.4X_{i2} + 0.3X_{i3},
+\]
+where $X_{1}\sim N(0,1)$, $X_{2}\sim \mathrm{Bernoulli}(0.5)$, and $X_{3}\sim U(-1,1)$, and the sample size is 2,000.
+ 
+The population ATE from this simulation is approximately $0.138$.
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{References}
+		{\footnotesize
+		\bibliographystyle{apalike}
+		\bibliography{Biblio}}
+\end{frame}
+
+
+\end{document}
